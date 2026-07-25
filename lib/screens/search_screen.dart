@@ -21,11 +21,14 @@ class SearchScreen extends ConsumerWidget {
       appBar: AppBar(
         title: TextField(
           autofocus: true,
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 18),
+          style: TextStyle(color: colorScheme.onSurface, fontSize: 17, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: 'Search expenses, notes, tasks...',
-            hintStyle: TextStyle(color: colorScheme.outline),
+            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16),
             border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
           ),
           onChanged: (value) {
             ref.read(globalSearchQueryProvider.notifier).state = value;
@@ -34,129 +37,182 @@ class SearchScreen extends ConsumerWidget {
         actions: [
           if (query.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.clear),
+              icon: Icon(Icons.close_rounded, color: colorScheme.onSurfaceVariant),
               onPressed: () {
                 ref.read(globalSearchQueryProvider.notifier).state = '';
               },
             ),
         ],
       ),
-      body: query.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search, size: 64, color: colorScheme.outline.withOpacity(0.5)),
-                  const SizedBox(height: 12),
-                  const Text('Type to search across all data...', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            )
-          : searchResult.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off, size: 64, color: colorScheme.outline.withOpacity(0.5)),
-                      const SizedBox(height: 12),
-                      const Text('No matching items found.', style: TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        child: query.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Notes matches
-                    if (searchResult.matchingNotes.isNotEmpty) ...[
-                      _buildHeader('Matching Notes', searchResult.matchingNotes.length),
-                      ...searchResult.matchingNotes.map((note) => Card(
-                            color: Color(note.color).withOpacity(0.15),
-                            child: ListTile(
-                              title: Text(note.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(
-                                note.content.isNotEmpty ? note.content : note.checklist.join(', '),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => NoteDetailScreen(note: note)),
-                                );
-                              },
-                            ),
-                          )),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Expenses matches
-                    if (searchResult.matchingExpenses.isNotEmpty) ...[
-                      _buildHeader('Matching Expenses', searchResult.matchingExpenses.length),
-                      ...searchResult.matchingExpenses.map((exp) => Card(
-                            child: ListTile(
-                              leading: const Icon(Icons.arrow_upward, color: Colors.red),
-                              title: Text(exp.title),
-                              subtitle: Text('${exp.category} • ${DateFormat('dd MMM').format(exp.date)}'),
-                              trailing: Text(
-                                '-$currency${exp.amount.toStringAsFixed(1)}',
-                                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          )),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Tasks matches
-                    if (searchResult.matchingTasks.isNotEmpty) ...[
-                      _buildHeader('Matching To-do Tasks', searchResult.matchingTasks.length),
-                      ...searchResult.matchingTasks.map((task) => Card(
-                            child: ListTile(
-                              leading: Icon(
-                                task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                                color: task.isCompleted ? Colors.green : Colors.grey,
-                              ),
-                              title: Text(task.title),
-                              subtitle: Text('${task.category} • Priority: ${task.priority}'),
-                            ),
-                          )),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Shopping Items matches
-                    if (searchResult.matchingShoppingItems.isNotEmpty) ...[
-                      _buildHeader('Matching Shopping Items', searchResult.matchingShoppingItems.length),
-                      ...searchResult.matchingShoppingItems.map((s) => Card(
-                            child: ListTile(
-                              leading: Icon(
-                                s.isPurchased ? Icons.check_box : Icons.check_box_outline_blank,
-                                color: s.isPurchased ? Colors.green : Colors.grey,
-                              ),
-                              title: Text(s.name),
-                              subtitle: Text('Qty: ${s.quantity} • Est. Cost: $currency${s.estimatedCost.toStringAsFixed(1)}'),
-                            ),
-                          )),
-                    ],
+                    Icon(Icons.search_rounded, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Type to search across all entries...',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
                   ],
                 ),
+              )
+            : searchResult.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off_rounded, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No matches found for "$query"',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      // Expenses matches
+                      if (searchResult.matchingExpenses.isNotEmpty) ...[
+                        _buildHeader('EXPENSES', searchResult.matchingExpenses.length, colorScheme),
+                        const SizedBox(height: 6),
+                        ...searchResult.matchingExpenses.map((exp) => Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: colorScheme.outline, width: 1),
+                              ),
+                              child: ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0x1FEF4444),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.arrow_upward_rounded, color: Color(0xFFEF4444), size: 18),
+                                ),
+                                title: Text(exp.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
+                                subtitle: Text('${exp.category} • ${DateFormat('dd MMM').format(exp.date)}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                                trailing: Text(
+                                  '-$currency${exp.amount.toStringAsFixed(0)}',
+                                  style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w800, fontSize: 15),
+                                ),
+                              ),
+                            )),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Notes matches
+                      if (searchResult.matchingNotes.isNotEmpty) ...[
+                        _buildHeader('NOTES & LISTS', searchResult.matchingNotes.length, colorScheme),
+                        const SizedBox(height: 6),
+                        ...searchResult.matchingNotes.map((note) => Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: colorScheme.outline, width: 1),
+                              ),
+                              child: ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withOpacity(0.12),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.edit_note_rounded, color: colorScheme.primary, size: 18),
+                                ),
+                                title: Text(note.title.isEmpty ? 'Untitled Note' : note.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
+                                subtitle: Text(
+                                  note.content.isNotEmpty ? note.content : note.checklist.join(', '),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => NoteDetailScreen(note: note)),
+                                  );
+                                },
+                              ),
+                            )),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Tasks matches
+                      if (searchResult.matchingTasks.isNotEmpty) ...[
+                        _buildHeader('TASKS', searchResult.matchingTasks.length, colorScheme),
+                        const SizedBox(height: 6),
+                        ...searchResult.matchingTasks.map((t) => Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: colorScheme.outline, width: 1),
+                              ),
+                              child: ListTile(
+                                leading: Icon(
+                                  t.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                                  color: t.isCompleted ? const Color(0xFF10B981) : colorScheme.onSurfaceVariant,
+                                  size: 20,
+                                ),
+                                title: Text(t.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
+                                subtitle: Text('${t.category} • Due: ${DateFormat('dd MMM').format(t.dueDate)}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                              ),
+                            )),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Shopping Items matches
+                      if (searchResult.matchingShoppingItems.isNotEmpty) ...[
+                        _buildHeader('SHOPPING ITEMS', searchResult.matchingShoppingItems.length, colorScheme),
+                        const SizedBox(height: 6),
+                        ...searchResult.matchingShoppingItems.map((s) => Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: colorScheme.outline, width: 1),
+                              ),
+                              child: ListTile(
+                                leading: Checkbox(
+                                  value: s.isPurchased,
+                                  activeColor: const Color(0xFF10B981),
+                                  onChanged: null,
+                                ),
+                                title: Text(s.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
+                                subtitle: Text('Qty: ${s.quantity} • Est: $currency${s.estimatedCost.toStringAsFixed(1)}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                              ),
+                            )),
+                      ],
+                    ],
+                  ),
+      ),
     );
   }
 
-  Widget _buildHeader(String title, int count) {
+  Widget _buildHeader(String title, int count, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+      padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
       child: Row(
         children: [
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: colorScheme.onSurfaceVariant, letterSpacing: 1.1),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(color: Colors.grey.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
             child: Text(
               '$count',
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: colorScheme.primary),
             ),
           )
         ],

@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../providers/expense_provider.dart';
 import '../providers/income_provider.dart';
-
 import '../providers/note_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../widgets/calculator_widget.dart';
 import 'calendar_screen.dart';
 import 'search_screen.dart';
-import '../models/expense.dart';
-import '../models/income.dart';
-import '../providers/navigation_provider.dart';
 import 'history_screen.dart';
+import '../models/expense.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -33,6 +30,7 @@ class HomeScreen extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     // Filter Current Month data
     final now = DateTime.now();
@@ -45,12 +43,12 @@ class HomeScreen extends ConsumerWidget {
     final double savings = balance > 0 ? balance : 0;
 
     // Budget Limit Alert
-    final bool isBudgetExceeded = totalExpense > settings.monthlyBudget;
-    final double budgetPercent = (totalExpense / settings.monthlyBudget).clamp(0.0, 1.0);
+    final bool isBudgetExceeded = settings.monthlyBudget > 0 && totalExpense > settings.monthlyBudget;
+    final double budgetPercent = settings.monthlyBudget > 0
+        ? (totalExpense / settings.monthlyBudget).clamp(0.0, 1.0)
+        : 0.0;
 
-
-
-    // Combined recent transactions (Expenses & Incomes sorted together)
+    // Combined recent transactions
     final recentItems = <dynamic>[];
     recentItems.addAll(expenses);
     recentItems.addAll(incomes);
@@ -60,13 +58,12 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () async {
-            // Hive reactive updates will reload automatically via provider invalidation
-          },
+          color: colorScheme.primary,
+          onRefresh: () async {},
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             children: [
-              // Greeting and Profile Header
+              // Header Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -74,77 +71,139 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PocketLife',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
+                        'Finovo',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         _getGreeting(),
                         style: TextStyle(
-                          color: colorScheme.outline,
-                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SearchScreen()),
-                      );
-                    },
+                  Row(
+                    children: [
+                      _buildHeaderIconButton(
+                        icon: Icons.search_rounded,
+                        tooltip: 'Search',
+                        colorScheme: colorScheme,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SearchScreen()),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _buildHeaderIconButton(
+                        icon: Icons.calendar_month_rounded,
+                        tooltip: 'Calendar',
+                        colorScheme: colorScheme,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CalendarScreen()),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _buildHeaderIconButton(
+                        icon: Icons.calculate_outlined,
+                        tooltip: 'Calculator',
+                        colorScheme: colorScheme,
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const CalculatorWidget(),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              // Glassmorphic Balance & Tracker Card
-              _buildBalanceCard(colorScheme, settings.currency, totalIncome, totalExpense, savings, balance),
+              // Elegant Gradient Balance Card
+              _buildBalanceCard(colorScheme, settings.currency, totalIncome, totalExpense, savings, balance, isDarkMode),
               const SizedBox(height: 16),
 
-              // Budget Progress & Alarm Notification Warning
+              // Budget Progress Tracker
               if (settings.monthlyBudget > 0)
                 _buildBudgetTracker(colorScheme, settings.currency, totalExpense, settings.monthlyBudget, budgetPercent, isBudgetExceeded),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              // Recent Transactions with View All link
+              // Recent Transactions Section Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Recent Activity', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  TextButton(
-                    onPressed: () {
-                      ref.read(navigationIndexProvider.notifier).state = 3; // Switch to Profile tab (index 3)
+                  Text(
+                    'Recent Activity',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const HistoryScreen()),
                       );
                     },
-                    child: const Text('View All', style: TextStyle(fontSize: 12)),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Text(
+                        'View All',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               if (displayTransactions.isEmpty)
                 _buildEmptyStateCard('No transactions logged yet', Icons.receipt_long_outlined, colorScheme)
               else
-                _buildRecentTransactions(displayTransactions, settings.currency, ref),
-              const SizedBox(height: 20),
+                _buildRecentTransactions(displayTransactions, settings.currency, colorScheme),
+              const SizedBox(height: 24),
 
-              // Recent Notes list
-              _buildSectionHeader(theme, 'Recent Notes & Lists', null),
-              const SizedBox(height: 8),
+              // Recent Notes Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Quick Notes & Lists',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               if (notes.isEmpty)
-                _buildEmptyStateCard('No notes saved', Icons.description_outlined, colorScheme)
+                _buildEmptyStateCard('No notes created', Icons.edit_note_rounded, colorScheme)
               else
-                _buildRecentNotes(notes.take(3).toList(), theme),
-              const SizedBox(height: 30),
+                _buildRecentNotes(notes.take(3).toList(), colorScheme),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -152,180 +211,240 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBalanceCard(ColorScheme scheme, String currency, double inc, double exp, double sav, double bal) {
-    return Card(
-      elevation: 4,
-      shadowColor: Color(scheme.primary.value).withOpacity(0.2),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: LinearGradient(
-            colors: [
-              scheme.primary,
-              scheme.secondary,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'NET CASH BALANCE',
-              style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '$currency${bal.toStringAsFixed(2)}',
-              style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildCardStatItem('Income', '$currency${inc.toStringAsFixed(0)}', Icons.arrow_downward, Colors.greenAccent),
-                _buildCardStatItem('Expenses', '$currency${exp.toStringAsFixed(0)}', Icons.arrow_upward, Colors.redAccent),
-                _buildCardStatItem('Savings', '$currency${sav.toStringAsFixed(0)}', Icons.savings_outlined, Colors.amberAccent),
-              ],
-            )
-          ],
-        ),
+  Widget _buildHeaderIconButton({
+    required IconData icon,
+    required String tooltip,
+    required ColorScheme colorScheme,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colorScheme.outline, width: 1),
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 20, color: colorScheme.onSurface),
+        tooltip: tooltip,
+        onPressed: onTap,
+        visualDensity: VisualDensity.compact,
       ),
     );
   }
 
-  Widget _buildCardStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildBalanceCard(ColorScheme scheme, String currency, double inc, double exp, double sav, double bal, bool isDarkMode) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          colors: isDarkMode
+              ? const [Color(0xFF18181B), Color(0xFF27272A)]
+              : const [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'TOTAL NET BALANCE',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.6),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$currency${bal.toStringAsFixed(2)}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildCardStatItem('Income', '$currency${inc.toStringAsFixed(0)}', Icons.arrow_downward_rounded, const Color(0xFF34D399)),
+              _buildCardStatItem('Expenses', '$currency${exp.toStringAsFixed(0)}', Icons.arrow_upward_rounded, const Color(0xFFF87171)),
+              _buildCardStatItem('Savings', '$currency${sav.toStringAsFixed(0)}', Icons.savings_outlined, const Color(0xFFFBBF24)),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardStatItem(String label, String value, IconData icon, Color accentColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: color, size: 14),
-            const SizedBox(width: 4),
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: accentColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: accentColor, size: 12),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildBudgetTracker(ColorScheme scheme, String currency, double exp, double limit, double percent, bool isExceeded) {
-    return Card(
-      elevation: 0,
-      color: isExceeded ? Colors.red.withOpacity(0.06) : scheme.surfaceVariant.withOpacity(0.3),
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: isExceeded ? Colors.red.withOpacity(0.2) : scheme.outline.withOpacity(0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      isExceeded ? Icons.warning_amber_rounded : Icons.pie_chart_outline,
-                      color: isExceeded ? Colors.red : scheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isExceeded ? 'Budget Limit Exceeded!' : 'Monthly Budget Planner',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: isExceeded ? Colors.red : scheme.onSurface),
-                    ),
-                  ],
-                ),
-                Text(
-                  '${(percent * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: isExceeded ? Colors.red : scheme.primary),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: percent,
-                backgroundColor: scheme.outline.withOpacity(0.1),
-                color: isExceeded ? Colors.red : scheme.primary,
-                minHeight: 8,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Spent: $currency${exp.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                Text(
-                  'Limit: $currency${limit.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ],
+        border: Border.all(
+          color: isExceeded ? scheme.error.withOpacity(0.5) : scheme.outline,
+          width: 1,
         ),
       ),
-    );
-  }
-
-
-
-  Widget _buildSectionHeader(ThemeData theme, String title, String? trailing) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        if (trailing != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
-            child: Text(trailing, style: TextStyle(color: theme.colorScheme.onPrimaryContainer, fontSize: 11, fontWeight: FontWeight.bold)),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    isExceeded ? Icons.warning_amber_rounded : Icons.donut_large_rounded,
+                    color: isExceeded ? scheme.error : scheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isExceeded ? 'Monthly Budget Exceeded!' : 'Monthly Budget Planner',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: isExceeded ? scheme.error : scheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${(percent * 100).toStringAsFixed(0)}%',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  color: isExceeded ? scheme.error : scheme.primary,
+                ),
+              ),
+            ],
           ),
-      ],
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: percent,
+              backgroundColor: scheme.outlineVariant,
+              color: isExceeded ? scheme.error : scheme.primary,
+              minHeight: 8,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Spent: $currency${exp.toStringAsFixed(0)}',
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+              ),
+              Text(
+                'Limit: $currency${limit.toStringAsFixed(0)}',
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-
-
-  Widget _buildRecentTransactions(List<dynamic> items, String currency, WidgetRef ref) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey.withOpacity(0.1))),
+  Widget _buildRecentTransactions(List<dynamic> items, String currency, ColorScheme scheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outline, width: 1),
+      ),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: items.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
+        separatorBuilder: (context, index) => Divider(height: 1, color: scheme.outline),
         itemBuilder: (context, index) {
           final item = items[index];
           final isExpense = item is Expense;
-          final color = isExpense ? Colors.red : Colors.green;
+          final color = isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981);
           final title = isExpense ? item.title : item.title;
           final amt = isExpense ? item.amount : item.amount;
           final details = isExpense ? '${item.category} • ${item.paymentMethod}' : item.category;
 
           return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: color.withOpacity(0.1),
-              child: Icon(isExpense ? Icons.arrow_upward : Icons.arrow_downward, color: color, size: 18),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isExpense ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                color: color,
+                size: 18,
+              ),
             ),
-            title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text(details),
+            title: Text(
+              title,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface),
+            ),
+            subtitle: Text(
+              details,
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+            ),
             trailing: Text(
               '${isExpense ? "-" : "+"}$currency${amt.toStringAsFixed(1)}',
-              style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15),
+              style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 15),
             ),
           );
         },
@@ -333,60 +452,55 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentNotes(List<dynamic> notesList, ThemeData theme) {
+  Widget _buildRecentNotes(List<dynamic> notesList, ColorScheme scheme) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.9,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.95,
       ),
       itemCount: notesList.length,
       itemBuilder: (context, index) {
         final note = notesList[index];
-        final isDarkMode = theme.brightness == Brightness.dark;
-        final noteBgColor = isDarkMode ? const Color(0xFF0E2012) : const Color(0xFFE8F5E9);
-        final noteTextColor = isDarkMode ? Colors.white70 : Colors.black87;
-        final noteSubColor = isDarkMode ? Colors.white60 : Colors.black54;
-
-        return Card(
-          elevation: 0,
-          color: noteBgColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: isDarkMode ? const Color(0xFF1B3C22) : const Color(0xFFE2EFE7)),
+        return Container(
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.outline, width: 1),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  note.title,
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                note.title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: scheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Expanded(
+                child: Text(
+                  note.content.isNotEmpty
+                      ? note.content
+                      : (note.checklist.isNotEmpty ? note.checklist.join(', ') : ''),
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: noteTextColor,
+                    fontSize: 11,
+                    color: scheme.onSurfaceVariant,
+                    height: 1.3,
                   ),
-                  maxLines: 1,
+                  maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                Expanded(
-                  child: Text(
-                    note.content.isNotEmpty ? note.content : (note.checklist.isNotEmpty ? note.checklist.join(', ') : ''),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: noteSubColor,
-                    ),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -394,19 +508,23 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildEmptyStateCard(String message, IconData icon, ColorScheme scheme) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: scheme.outline.withOpacity(0.1))),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(icon, size: 36, color: scheme.outline.withOpacity(0.4)),
-              const SizedBox(height: 8),
-              Text(message, style: TextStyle(color: scheme.outline, fontSize: 13)),
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outline, width: 1),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(icon, size: 32, color: scheme.onSurfaceVariant.withOpacity(0.5)),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
       ),
     );

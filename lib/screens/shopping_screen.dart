@@ -41,116 +41,136 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         final theme = Theme.of(context);
         final colorScheme = theme.colorScheme;
 
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+
         return Container(
           padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
+            left: 20,
+            right: 20,
             top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            bottom: bottomInset > 0 ? bottomInset + 16 : bottomPadding + 24,
           ),
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border.all(color: colorScheme.outline, width: 1),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                editingItem == null ? 'Add Shopping Item' : 'Edit Shopping Item',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Item Name',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _qtyController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Quantity',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _priceController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        labelText: 'Price per item',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                Text(
+                  editingItem == null ? 'Add Shopping Item' : 'Edit Shopping Item',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(color: colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                  decoration: const InputDecoration(
+                    labelText: 'Item Name',
+                    hintText: 'e.g., Milk, Groceries, New Shoes',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _qtyController,
+                        keyboardType: TextInputType.number,
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                        decoration: const InputDecoration(
+                          labelText: 'Quantity',
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () {
-                    final name = _nameController.text.trim();
-                    if (name.isEmpty) return;
-
-                    final qty = int.tryParse(_qtyController.text) ?? 1;
-                    final price = double.tryParse(_priceController.text) ?? 0.0;
-                    final cost = qty * price;
-
-                    final shoppingNotifier = ref.read(shoppingProvider.notifier);
-
-                    if (editingItem == null) {
-                      final item = ShoppingItem(
-                        id: const Uuid().v4(),
-                        name: name,
-                        quantity: qty,
-                        price: price,
-                        estimatedCost: cost,
-                        isPurchased: false,
-                      );
-                      shoppingNotifier.addItem(item);
-                    } else {
-                      final item = editingItem.copyWith(
-                        name: name,
-                        quantity: qty,
-                        price: price,
-                        estimatedCost: cost,
-                      );
-                      shoppingNotifier.updateItem(item);
-                    }
-
-                    Navigator.pop(context);
-                  },
-                  child: Text(editingItem == null ? 'Add Item' : 'Save Changes'),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _priceController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                        decoration: InputDecoration(
+                          labelText: 'Price',
+                          prefixText: '${ref.read(settingsProvider).currency} ',
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      final name = _nameController.text.trim();
+                      if (name.isEmpty) return;
+
+                      final qty = int.tryParse(_qtyController.text) ?? 1;
+                      final price = double.tryParse(_priceController.text) ?? 0.0;
+                      final notifier = ref.read(shoppingProvider.notifier);
+
+                      if (editingItem == null) {
+                        final item = ShoppingItem(
+                          id: const Uuid().v4(),
+                          name: name,
+                          quantity: qty,
+                          price: price,
+                          estimatedCost: qty * price,
+                          isPurchased: false,
+                        );
+                        notifier.addItem(item);
+                      } else {
+                        final item = editingItem.copyWith(
+                          name: name,
+                          quantity: qty,
+                          price: price,
+                          estimatedCost: qty * price,
+                        );
+                        notifier.updateItem(item);
+                      }
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      editingItem == null ? 'Add Item' : 'Save Changes',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -159,30 +179,35 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
 
   void _handlePurchaseToggle(ShoppingItem item) async {
     final notifier = ref.read(shoppingProvider.notifier);
-    
+
     if (!item.isPurchased) {
-      // Toggle state to purchased
       await notifier.togglePurchased(item.id);
-      
-      // Prompt user to convert to expense tracker entry
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
             return AlertDialog(
-              title: const Text('Move to Expense?'),
+              backgroundColor: colorScheme.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Text('Item Purchased!', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
               content: Text(
-                'Would you like to automatically create an expense entry for "${item.name}" of amount ${ref.read(settingsProvider).currency}${item.estimatedCost.toStringAsFixed(1)}?',
+                'Would you like to log "${item.name}" (${ref.read(settingsProvider).currency}${item.estimatedCost.toStringAsFixed(1)}) as a financial expense?',
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('No'),
+                  child: Text('Skip', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   onPressed: () async {
                     Navigator.pop(context);
-                    // Add expense
                     final exp = Expense(
                       id: const Uuid().v4(),
                       title: item.name,
@@ -190,18 +215,21 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                       category: 'Shopping',
                       description: 'Purchased from shopping list (Qty: ${item.quantity})',
                       date: DateTime.now(),
-                      paymentMethod: 'Cash', // Default
+                      paymentMethod: 'Cash',
                     );
                     await ref.read(expenseProvider.notifier).addExpense(exp);
-                    
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Expense logged: ${item.name}'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Expense logged: ${item.name}'),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                    }
                   },
-                  child: const Text('Convert to Expense'),
+                  child: const Text('Log Expense', style: TextStyle(fontWeight: FontWeight.bold)),
                 )
               ],
             );
@@ -209,7 +237,6 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
         );
       }
     } else {
-      // Toggle back to unpurchased
       await notifier.togglePurchased(item.id);
     }
   }
@@ -228,99 +255,121 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
         title: const Text('Shopping List'),
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddItemSheet(),
-        child: const Icon(Icons.add_shopping_cart),
+        elevation: 3,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        icon: const Icon(Icons.add_shopping_cart_rounded),
+        label: const Text('Add Item', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: Column(
-        children: [
-          // Header summary card
-          Card(
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Total Estimated Cost', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${settings.currency}${totalEstimated.toStringAsFixed(2)}',
-                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(color: colorScheme.primaryContainer, borderRadius: BorderRadius.circular(16)),
-                    child: Text(
-                      '${items.where((i) => !i.isPurchased).length} Items Left',
-                      style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header summary card
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: colorScheme.outline, width: 1),
+                ),
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.shopping_basket_outlined, size: 64, color: colorScheme.outline.withOpacity(0.5)),
-                        const SizedBox(height: 12),
                         Text(
-                          'Shopping list is empty.',
-                          style: TextStyle(color: colorScheme.outline, fontSize: 16),
+                          'Estimated Total',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${settings.currency}${totalEstimated.toStringAsFixed(2)}',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: colorScheme.primary,
+                          ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return _buildShoppingCard(item, settings.currency, colorScheme);
-                    },
-                  ),
-          ),
-        ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        '${items.where((i) => i.isPurchased).length}/${items.length} Done',
+                        style: TextStyle(fontWeight: FontWeight.w800, color: colorScheme.primary, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shopping_bag_outlined, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Shopping list is empty.',
+                            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return _buildShoppingCard(item, settings.currency, colorScheme);
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildShoppingCard(ShoppingItem item, String currency, ColorScheme scheme) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: scheme.outline.withOpacity(0.12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.outline, width: 1),
       ),
-      margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: Checkbox(
           value: item.isPurchased,
-          activeColor: Colors.green,
+          activeColor: const Color(0xFF10B981),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
           onChanged: (value) => _handlePurchaseToggle(item),
         ),
         title: Text(
           item.name,
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
             decoration: item.isPurchased ? TextDecoration.lineThrough : null,
-            color: item.isPurchased ? Colors.grey : null,
+            color: item.isPurchased ? scheme.onSurfaceVariant : scheme.onSurface,
           ),
         ),
         subtitle: Text(
           'Qty: ${item.quantity} • Price: $currency${item.price.toStringAsFixed(1)}',
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -328,18 +377,18 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
             Text(
               '$currency${item.estimatedCost.toStringAsFixed(1)}',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 fontSize: 15,
-                color: item.isPurchased ? Colors.grey : scheme.primary,
+                color: item.isPurchased ? scheme.onSurfaceVariant : scheme.primary,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 20),
+              icon: Icon(Icons.edit_outlined, size: 18, color: scheme.onSurfaceVariant),
               onPressed: () => _showAddItemSheet(editingItem: item),
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 18),
               onPressed: () {
                 ref.read(shoppingProvider.notifier).deleteItem(item.id);
               },

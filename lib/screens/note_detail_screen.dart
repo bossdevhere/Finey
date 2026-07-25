@@ -105,7 +105,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    final noteBgColor = isDarkMode ? const Color(0xFF0E2012) : const Color(0xFFE8F5E9);
+    final noteBgColor = isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFE8F5E9);
     final noteTextColor = isDarkMode ? Colors.white70 : Colors.black87;
 
     return PopScope(

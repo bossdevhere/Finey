@@ -23,6 +23,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final incomes = ref.watch(incomeProvider);
     final settings = ref.watch(settingsProvider);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     // Combine all activities
     final allTransactions = <dynamic>[...expenses, ...incomes];
@@ -65,183 +66,204 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       }
     }
 
+    final netMonth = totalIncome - totalExpense;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction History'),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          // Simplified Month Picker & Summary Card
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Month Picker & Summary Card
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: colorScheme.outline, width: 1),
+                ),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
                     // Selective Month Dropdown
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Select Month:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Text(
+                          'Filter Month',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: colorScheme.onSurface,
+                          ),
                         ),
-                        DropdownButton<String>(
-                          value: selectedKey,
-                          underline: const SizedBox(),
-                          icon: const Icon(Icons.arrow_drop_down),
-                          borderRadius: BorderRadius.circular(12),
-                          items: sortedMonthKeys.map((key) {
-                            return DropdownMenuItem<String>(
-                              value: key,
-                              child: Text(key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedMonthKey = val;
-                            });
-                          },
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: DropdownButton<String>(
+                            value: selectedKey,
+                            underline: const SizedBox(),
+                            icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.onSurface),
+                            dropdownColor: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            items: sortedMonthKeys.map((key) {
+                              return DropdownMenuItem<String>(
+                                value: key,
+                                child: Text(
+                                  key,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedMonthKey = val;
+                              });
+                            },
+                          ),
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
-                    // Summary Rows (Reduced text, simple layout)
+                    Divider(height: 28, color: colorScheme.outline),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildSummaryItem(
-                          'Income',
-                          '${settings.currency}${totalIncome.toStringAsFixed(0)}',
-                          Colors.green,
-                        ),
-                        _buildSummaryItem(
-                          'Expenses',
-                          '${settings.currency}${totalExpense.toStringAsFixed(0)}',
-                          Colors.red,
-                        ),
-                        _buildSummaryItem(
-                          'Net',
-                          '${settings.currency}${(totalIncome - totalExpense).toStringAsFixed(0)}',
-                          (totalIncome - totalExpense) >= 0 ? Colors.green : Colors.red,
-                        ),
+                        _buildSummaryItem('Income', '+${settings.currency}${totalIncome.toStringAsFixed(0)}', const Color(0xFF10B981), colorScheme),
+                        _buildSummaryItem('Expense', '-${settings.currency}${totalExpense.toStringAsFixed(0)}', const Color(0xFFEF4444), colorScheme),
+                        _buildSummaryItem('Net', '${settings.currency}${netMonth.toStringAsFixed(0)}', netMonth >= 0 ? const Color(0xFF6366F1) : const Color(0xFFF97316), colorScheme),
                       ],
-                    ),
+                    )
                   ],
                 ),
               ),
             ),
-          ),
 
-          // Simplified Activity List
-          Expanded(
-            child: monthlyTransactions.isEmpty
-                ? Center(
-                    child: Text(
-                      'No activities for this month.',
-                      style: TextStyle(color: theme.colorScheme.outline),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: monthlyTransactions.length,
-                    itemBuilder: (context, index) {
-                      final item = monthlyTransactions[index];
-                      final isExpense = item is Expense;
-                      final dateStr = DateFormat('dd MMM').format(item.date);
+            // Transactions List
+            Expanded(
+              child: monthlyTransactions.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No transactions found for $selectedKey',
+                        style: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: monthlyTransactions.length,
+                      itemBuilder: (context, index) {
+                        final item = monthlyTransactions[index];
+                        final isExpense = item is Expense;
+                        final color = isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981);
+                        final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(item.date);
+                        final desc = isExpense ? item.description : item.notes;
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          dense: true,
-                          leading: CircleAvatar(
-                            backgroundColor: isExpense
-                                ? Colors.red.withOpacity(0.08)
-                                : Colors.green.withOpacity(0.08),
-                            radius: 16,
-                            child: Icon(
-                              isExpense ? Icons.arrow_downward : Icons.arrow_upward,
-                              color: isExpense ? Colors.red : Colors.green,
-                              size: 16,
-                            ),
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: colorScheme.outline, width: 1),
                           ),
-                          title: Text(
-                            item.category,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            '$dateStr ${item.description.isNotEmpty ? "• ${item.description}" : ""}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Text(
-                            '${isExpense ? "-" : "+"}${settings.currency}${item.amount.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isExpense ? Colors.red : Colors.green,
-                            ),
-                          ),
-                          onLongPress: () {
-                            // Quick option to delete
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Delete Entry?'),
-                                content: const Text('Do you want to permanently delete this entry?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.error,
-                                      foregroundColor: theme.colorScheme.onError,
-                                    ),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      if (isExpense) {
-                                        ref.read(expenseProvider.notifier).deleteExpense(item.id);
-                                      } else {
-                                        ref.read(incomeProvider.notifier).deleteIncome(item.id);
-                                      }
-                                    },
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.1),
+                                shape: BoxShape.circle,
                               ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                              child: Icon(
+                                isExpense ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                                color: color,
+                                size: 18,
+                              ),
+                            ),
+                            title: Text(
+                              isExpense ? item.title : item.title,
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface),
+                            ),
+                            subtitle: Text(
+                              '$dateStr ${desc.isNotEmpty ? "• $desc" : ""}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                            ),
+                            trailing: Text(
+                              '${isExpense ? "-" : "+"}${settings.currency}${item.amount.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: color,
+                              ),
+                            ),
+                            onLongPress: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: colorScheme.surface,
+                                  title: Text('Delete Entry?', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                                  content: Text('Do you want to permanently delete this entry?', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: colorScheme.error,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        if (isExpense) {
+                                          ref.read(expenseProvider.notifier).deleteExpense(item.id);
+                                        } else {
+                                          ref.read(incomeProvider.notifier).deleteIncome(item.id);
+                                        }
+                                      },
+                                      child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, Color color) {
+  Widget _buildSummaryItem(String label, String value, Color accentColor, ColorScheme colorScheme) {
     return Column(
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
+            fontWeight: FontWeight.w800,
+            color: accentColor,
           ),
         ),
       ],

@@ -54,67 +54,79 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         title: const Text('Insights & Analytics'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Period Selector
-          _buildPeriodSelector(colorScheme),
-          const SizedBox(height: 16),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            // Period Selector Segmented Button
+            _buildPeriodSelector(colorScheme),
+            const SizedBox(height: 20),
 
-          // Core Financial Cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Income',
-                  '${settings.currency}${totalIncome.toStringAsFixed(0)}',
-                  Colors.green,
-                  Icons.arrow_downward,
+            // Financial Summary Cards
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    'Income',
+                    '${settings.currency}${totalIncome.toStringAsFixed(0)}',
+                    const Color(0xFF10B981),
+                    Icons.arrow_downward_rounded,
+                    colorScheme,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  'Expenses',
-                  '${settings.currency}${totalExpense.toStringAsFixed(0)}',
-                  Colors.red,
-                  Icons.arrow_upward,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    'Expenses',
+                    '${settings.currency}${totalExpense.toStringAsFixed(0)}',
+                    const Color(0xFFEF4444),
+                    Icons.arrow_upward_rounded,
+                    colorScheme,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildStatCard(
-            'Net Savings',
-            '${settings.currency}${netSavings.toStringAsFixed(0)}',
-            netSavings >= 0 ? Colors.teal : Colors.deepOrange,
-            Icons.savings_outlined,
-            isFullWidth: true,
-          ),
-          const SizedBox(height: 20),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildStatCard(
+              'Net Savings',
+              '${settings.currency}${netSavings.toStringAsFixed(0)}',
+              netSavings >= 0 ? const Color(0xFF6366F1) : const Color(0xFFF97316),
+              Icons.savings_outlined,
+              colorScheme,
+              isFullWidth: true,
+            ),
+            const SizedBox(height: 24),
 
-          // Pie Chart: Category breakdown
-          _sectionTitle('Category Distribution'),
-          const SizedBox(height: 8),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+            // Pie Chart: Category breakdown
+            _sectionTitle('Category Distribution', colorScheme),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              padding: const EdgeInsets.all(20.0),
               child: categoryTotals.isEmpty
-                  ? const SizedBox(
-                      height: 200,
-                      child: Center(child: Text('No expense data to analyze')),
+                  ? SizedBox(
+                      height: 180,
+                      child: Center(
+                        child: Text(
+                          'No expense data to analyze',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                        ),
+                      ),
                     )
                   : Row(
                       children: [
                         Expanded(
                           flex: 3,
                           child: SizedBox(
-                            height: 200,
+                            height: 180,
                             child: PieChart(
                               PieChartData(
-                                sectionsSpace: 2,
-                                centerSpaceRadius: 40,
+                                sectionsSpace: 3,
+                                centerSpaceRadius: 36,
                                 sections: _buildPieSections(categoryTotals, colorScheme),
                               ),
                             ),
@@ -127,19 +139,33 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: categoryTotals.entries.map((entry) {
                               final color = _getCategoryColor(entry.key, colorScheme);
-                              final pct = (entry.value / totalExpense) * 100;
-                              return Row(
-                                children: [
-                                  Container(width: 10, height: 10, color: color),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      '${entry.key} (${pct.toStringAsFixed(0)}%)',
-                                      style: const TextStyle(fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
+                              final pct = totalExpense > 0 ? (entry.value / totalExpense) * 100 : 0.0;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '${entry.key} (${pct.toStringAsFixed(0)}%)',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: colorScheme.onSurface,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               );
                             }).toList(),
                           ),
@@ -147,56 +173,27 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       ],
                     ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-          // Bar Chart: Weekly or monthly expenses
-          _sectionTitle('Expense History'),
-          const SizedBox(height: 8),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                height: 200,
-                child: filteredExpenses.isEmpty
-                    ? const Center(child: Text('No historical transaction data'))
-                    : BarChart(
-                        BarChartData(
-                          borderData: FlBorderData(show: false),
-                          gridData: const FlGridData(show: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  return _getBarLabels(value, filteredExpenses);
-                                },
-                              ),
-                            ),
-                          ),
-                          barGroups: _buildBarGroups(filteredExpenses, colorScheme),
-                        ),
-                      ),
+            // Line Chart: Spending & Income Trends
+            _sectionTitle('Financial Trends', colorScheme),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
               ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Line Chart: Income vs Expense Trend
-          _sectionTitle('Income vs Expense Trend'),
-          const SizedBox(height: 8),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(20.0),
               child: SizedBox(
                 height: 200,
                 child: (expenses.isEmpty && incomes.isEmpty)
-                    ? const Center(child: Text('No trend data available'))
+                    ? Center(
+                        child: Text(
+                          'No trend data logged yet',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                        ),
+                      )
                     : LineChart(
                         LineChartData(
                           gridData: const FlGridData(show: false),
@@ -212,124 +209,190 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                             LineChartBarData(
                               spots: _buildLineSpots(expenses),
                               isCurved: true,
-                              color: Colors.redAccent,
-                              barWidth: 4,
+                              color: const Color(0xFFEF4444),
+                              barWidth: 3.5,
                               dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(show: true, color: Colors.redAccent.withOpacity(0.1)),
+                              belowBarData: BarAreaData(show: true, color: const Color(0xFFEF4444).withOpacity(0.1)),
                             ),
                             // Incomes line
                             LineChartBarData(
                               spots: _buildLineSpotsForIncome(incomes),
                               isCurved: true,
-                              color: Colors.greenAccent,
-                              barWidth: 4,
+                              color: const Color(0xFF10B981),
+                              barWidth: 3.5,
                               dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.1)),
+                              belowBarData: BarAreaData(show: true, color: const Color(0xFF10B981).withOpacity(0.1)),
                             ),
                           ],
                         ),
                       ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-          // Quick statistics cards
-          _sectionTitle('Key Insights'),
-          const SizedBox(height: 8),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+            // Key Insights Card
+            _sectionTitle('Key Insights', colorScheme),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
                   _buildInsightRow('Highest Spending Category', highestCategory, colorScheme),
-                  const Divider(),
+                  Divider(color: colorScheme.outline, height: 20),
                   _buildInsightRow('Average Daily Spending', '${settings.currency}${avgDailyExpense.toStringAsFixed(1)}', colorScheme),
-                  const Divider(),
+                  Divider(color: colorScheme.outline, height: 20),
                   _buildInsightRow('Current Savings Margin', '${settings.currency}${netSavings.toStringAsFixed(0)}', colorScheme),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 30),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodSelector(ColorScheme colorScheme) {
-    final periods = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
-    return Center(
-      child: SegmentedButton<String>(
-        segments: periods.map((p) => ButtonSegment(value: p, label: Text(p))).toList(),
-        selected: {_selectedPeriod},
-        onSelectionChanged: (newSelection) {
-          setState(() {
-            _selectedPeriod = newSelection.first;
-          });
-        },
-        style: ButtonStyle(
-          visualDensity: VisualDensity.compact,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String val, Color color, IconData icon, {bool isFullWidth = false}) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      color: color.withOpacity(0.06),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: color.withOpacity(0.15)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
-                const SizedBox(height: 4),
-                Text(val, style: TextStyle(fontSize: isFullWidth ? 26 : 22, fontWeight: FontWeight.bold, color: color)),
-              ],
-            ),
-            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInsightRow(String title, String val, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Widget _buildPeriodSelector(ColorScheme colorScheme) {
+    final periods = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline, width: 1),
+      ),
+      child: Row(
+        children: periods.map((p) {
+          final isSelected = _selectedPeriod == p;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedPeriod = p;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? colorScheme.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  p,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String val, Color accentColor, IconData icon, ColorScheme colorScheme, {bool isFullWidth = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outline, width: 1),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(color: colorScheme.outline, fontWeight: FontWeight.w500)),
-          Text(val, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                val,
+                style: TextStyle(
+                  fontSize: isFullWidth ? 26 : 22,
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.onSurface,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: accentColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: accentColor, size: 22),
+          ),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.primary,
+  Widget _buildInsightRow(String title, String val, ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            val,
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // --- Filtering & Calculation Helpers ---
+  Widget _sectionTitle(String title, ColorScheme colorScheme) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.3,
+        color: colorScheme.onSurface,
+      ),
+    );
+  }
+
+  // Helper calculation functions
   List<Expense> _filterExpenses(List<Expense> list) {
     final now = DateTime.now();
     if (_selectedPeriod == 'Daily') {
@@ -390,75 +453,24 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   Color _getCategoryColor(String category, ColorScheme scheme) {
     switch (category) {
       case 'Food':
-        return Colors.orangeAccent;
+        return const Color(0xFFF59E0B);
       case 'Shopping':
-        return Colors.purpleAccent;
+        return const Color(0xFF8B5CF6);
       case 'Travel':
-        return Colors.blueAccent;
+        return const Color(0xFF3B82F6);
       case 'Bills':
-        return Colors.redAccent;
+        return const Color(0xFFEF4444);
       case 'Health':
-        return Colors.greenAccent;
+        return const Color(0xFF10B981);
       case 'Entertainment':
-        return Colors.pinkAccent;
+        return const Color(0xFFEC4899);
       case 'Education':
-        return Colors.tealAccent;
+        return const Color(0xFF14B8A6);
       case 'Fuel':
-        return Colors.yellowAccent;
+        return const Color(0xFFEAB308);
       default:
-        return Colors.grey;
+        return scheme.onSurfaceVariant;
     }
-  }
-
-  List<BarChartGroupData> _buildBarGroups(List<Expense> list, ColorScheme scheme) {
-    final Map<int, double> grouped = {};
-    // Group by day of week or month depending on period
-    if (_selectedPeriod == 'Daily' || _selectedPeriod == 'Weekly') {
-      for (var e in list) {
-        final day = e.date.weekday;
-        grouped[day] = (grouped[day] ?? 0.0) + e.amount;
-      }
-    } else {
-      for (var e in list) {
-        final dayIndex = (e.date.day / 5).floor() + 1; // Group into 5-day intervals
-        grouped[dayIndex] = (grouped[dayIndex] ?? 0.0) + e.amount;
-      }
-    }
-
-    final List<BarChartGroupData> groups = [];
-    grouped.forEach((key, val) {
-      groups.add(
-        BarChartGroupData(
-          x: key,
-          barRods: [
-            BarChartRodData(
-              toY: val,
-              color: scheme.primary,
-              width: 14,
-              borderRadius: BorderRadius.circular(4),
-            )
-          ],
-        ),
-      );
-    });
-
-    groups.sort((a, b) => a.x.compareTo(b.x));
-    return groups;
-  }
-
-  Widget _getBarLabels(double value, List<Expense> list) {
-    final style = TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.bold);
-    if (_selectedPeriod == 'Daily' || _selectedPeriod == 'Weekly') {
-      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      int index = value.toInt() - 1;
-      if (index >= 0 && index < weekdays.length) {
-        return Text(weekdays[index], style: style);
-      }
-    } else {
-      int index = value.toInt();
-      return Text('P$index', style: style); // Period chunk (e.g. part of month)
-    }
-    return const Text('');
   }
 
   List<FlSpot> _buildLineSpots(List<Expense> list) {

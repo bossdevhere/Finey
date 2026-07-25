@@ -24,7 +24,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
@@ -36,24 +36,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
         return AlertDialog(
-          title: const Text('Set Monthly Budget'),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: colorScheme.surface,
+          title: Text('Set Monthly Budget', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           content: TextField(
             controller: _budgetController,
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            autofocus: true,
             decoration: InputDecoration(
-              prefixText: settingsObj.currency,
+              prefixText: '${settingsObj.currency} ',
               labelText: 'Budget Amount',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+              ),
               onPressed: () {
                 final val = double.tryParse(_budgetController.text);
                 if (val != null && val > 0) {
@@ -62,7 +69,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   _showSnackBar('Budget updated successfully!');
                 }
               },
-              child: const Text('Save'),
+              child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
             )
           ],
         );
@@ -77,15 +84,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
         return AlertDialog(
-          title: const Text('Select Currency Symbol'),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: colorScheme.surface,
+          title: Text('Select Currency Symbol', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: currencies.map((cur) {
+              final isSelected = settingsObj.currency == cur;
               return ListTile(
-                title: Text(cur, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                trailing: settingsObj.currency == cur ? const Icon(Icons.check, color: Colors.green) : null,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                title: Text(cur, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: colorScheme.onSurface)),
+                trailing: isSelected ? Icon(Icons.check_circle_rounded, color: colorScheme.primary) : null,
                 onTap: () {
                   ref.read(settingsProvider.notifier).updateCurrency(cur);
                   Navigator.pop(context);
@@ -103,116 +114,174 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final settingsObj = ref.watch(settingsProvider);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings & Preferences'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Header Card
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            // User Header Profile Card
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
-                    child: Icon(Icons.person, size: 36, color: theme.colorScheme.primary),
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.person_rounded, size: 32, color: colorScheme.primary),
                   ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PocketLife User',
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        'Finovo User',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Personal Expense Tracker',
-                        style: TextStyle(fontSize: 12, color: theme.colorScheme.outline),
+                        'Personal Finance & Life Manager',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-          // Styling settings section
-          _sectionHeader('Visual Design'),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: const Text('Dark Mode'),
-                  subtitle: const Text('Easy on eyes & saves battery'),
-                  secondary: const Icon(Icons.dark_mode),
-                  value: settingsObj.isDarkMode,
-                  onChanged: (bool val) {
-                    ref.read(settingsProvider.notifier).toggleDarkMode();
-                  },
+            // Visual Design Section
+            _sectionHeader('THEME & DESIGN', colorScheme),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                title: Text(
+                  'Dark Theme',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
                 ),
-              ],
+                subtitle: Text(
+                  'Sleek obsidian mode for reduced eye strain',
+                  style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                ),
+                secondary: Icon(
+                  settingsObj.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                  color: colorScheme.primary,
+                ),
+                value: settingsObj.isDarkMode,
+                activeColor: colorScheme.primary,
+                onChanged: (bool val) {
+                  ref.read(settingsProvider.notifier).toggleDarkMode();
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-          // Tracker settings section
-          _sectionHeader('Financial Tracker'),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                ListTile(
-                  title: const Text('Currency Symbol'),
-                  subtitle: Text('Current currency: ${settingsObj.currency}'),
-                  leading: const Icon(Icons.currency_exchange),
-                  onTap: _showCurrencyDialog,
-                ),
-                ListTile(
-                  title: const Text('Monthly Budget Limit'),
-                  subtitle: Text('Budget warning fires at: ${settingsObj.currency}${settingsObj.monthlyBudget.toStringAsFixed(0)}'),
-                  leading: const Icon(Icons.wallet),
-                  onTap: _showBudgetDialog,
-                ),
-                ListTile(
-                  title: const Text('Transaction History'),
-                  subtitle: const Text('View and filter monthly activities'),
-                  leading: const Icon(Icons.history),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HistoryScreen()),
-                    );
-                  },
-                ),
-              ],
+            // Financial Tracker Section
+            _sectionHeader('FINANCIAL PREFERENCES', colorScheme),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Currency Symbol',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'Active symbol: ${settingsObj.currency}',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.currency_exchange_rounded, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: _showCurrencyDialog,
+                  ),
+                  Divider(height: 1, color: colorScheme.outline),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Monthly Budget Limit',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'Warning limit: ${settingsObj.currency}${settingsObj.monthlyBudget.toStringAsFixed(0)}',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.account_balance_wallet_rounded, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: _showBudgetDialog,
+                  ),
+                  Divider(height: 1, color: colorScheme.outline),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Transaction History',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'View, search, and filter all entries',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.history_rounded, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 30),
-        ],
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _sectionHeader(String title) {
+  Widget _sectionHeader(String title, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+      padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: colorScheme.onSurfaceVariant,
           letterSpacing: 1.2,
         ),
       ),

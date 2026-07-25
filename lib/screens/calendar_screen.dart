@@ -45,7 +45,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final dayTasks = tasks.where((t) => _isSameDayWithoutTime(t.dueDate, _selectedDay!)).toList();
 
     // Get events for markers
-    List<dynamic> _getEventsForDay(DateTime day) {
+    List<dynamic> getEventsForDay(DateTime day) {
       final List<dynamic> events = [];
       events.addAll(expenses.where((e) => _isSameDayWithoutTime(e.date, day)));
       events.addAll(incomes.where((i) => _isSameDayWithoutTime(i.date, day)));
@@ -58,174 +58,211 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         title: const Text('Calendar Planner'),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Card(
-            margin: const EdgeInsets.all(12),
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: TableCalendar(
-              firstDay: DateTime.now().subtract(const Duration(days: 365)),
-              lastDay: DateTime.now().add(const Duration(days: 365)),
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-              },
-              onFormatChanged: (format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              },
-              eventLoader: _getEventsForDay,
-              calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.4),
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                markerDecoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  shape: BoxShape.circle,
-                ),
-                markersMaxCount: 3,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: colorScheme.outline, width: 1),
               ),
-              headerStyle: HeaderStyle(
-                formatButtonVisible: true,
-                titleCentered: true,
-                formatButtonDecoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.all(8),
+              child: TableCalendar(
+                firstDay: DateTime.now().subtract(const Duration(days: 365)),
+                lastDay: DateTime.now().add(const Duration(days: 365)),
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                eventLoader: getEventsForDay,
+                calendarStyle: CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  todayTextStyle: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+                  selectedDecoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  selectedTextStyle: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
+                  markerDecoration: BoxDecoration(
+                    color: colorScheme.secondary,
+                    shape: BoxShape.circle,
+                  ),
+                  markersMaxCount: 3,
                 ),
-                formatButtonTextStyle: TextStyle(color: colorScheme.onSecondaryContainer),
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: true,
+                  titleCentered: true,
+                  formatButtonDecoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  formatButtonTextStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                  titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Agenda: ${DateFormat('dd MMM yyyy').format(_selectedDay!)}',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${dayExpenses.length + dayIncomes.length + dayTasks.length} Items',
-                  style: TextStyle(color: colorScheme.outline),
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: (dayExpenses.isEmpty && dayIncomes.isEmpty && dayTasks.isEmpty)
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.calendar_today_outlined, size: 48, color: colorScheme.outline.withOpacity(0.5)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No events or tasks for this day',
-                          style: TextStyle(color: colorScheme.outline),
-                        ),
-                      ],
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Agenda: ${DateFormat('dd MMM yyyy').format(_selectedDay!)}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${dayExpenses.length + dayIncomes.length + dayTasks.length} Items',
+                      style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   )
-                : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    children: [
-                      if (dayIncomes.isNotEmpty) ...[
-                        Text(
-                          'Incomes',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700, fontSize: 13),
-                        ),
-                        const SizedBox(height: 4),
-                        ...dayIncomes.map((inc) => Card(
-                              elevation: 0,
-                              color: Colors.green.withOpacity(0.05),
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: Colors.green.withOpacity(0.15))),
-                              child: ListTile(
-                                leading: const Icon(Icons.arrow_downward, color: Colors.green),
-                                title: Text(inc.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                subtitle: Text(inc.category),
-                                trailing: Text(
-                                  '+${settings.currency}${inc.amount.toStringAsFixed(2)}',
-                                  style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: (dayExpenses.isEmpty && dayIncomes.isEmpty && dayTasks.isEmpty)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_note_rounded, size: 48, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No events or tasks for this day',
+                            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        if (dayIncomes.isNotEmpty) ...[
+                          Text(
+                            'INCOMES',
+                            style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF10B981), fontSize: 12, letterSpacing: 1.1),
+                          ),
+                          const SizedBox(height: 6),
+                          ...dayIncomes.map((inc) => Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: colorScheme.outline, width: 1),
                                 ),
-                              ),
-                            )),
-                        const SizedBox(height: 12),
-                      ],
-                      if (dayExpenses.isNotEmpty) ...[
-                        Text(
-                          'Expenses',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 13),
-                        ),
-                        const SizedBox(height: 4),
-                        ...dayExpenses.map((exp) => Card(
-                              elevation: 0,
-                              color: Colors.red.withOpacity(0.05),
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: Colors.red.withOpacity(0.15))),
-                              child: ListTile(
-                                leading: const Icon(Icons.arrow_upward, color: Colors.red),
-                                title: Text(exp.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                subtitle: Text('${exp.category} • ${exp.paymentMethod}'),
-                                trailing: Text(
-                                  '-${settings.currency}${exp.amount.toStringAsFixed(2)}',
-                                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
-                                ),
-                              ),
-                            )),
-                        const SizedBox(height: 12),
-                      ],
-                      if (dayTasks.isNotEmpty) ...[
-                        Text(
-                          'Tasks',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary, fontSize: 13),
-                        ),
-                        const SizedBox(height: 4),
-                        ...dayTasks.map((task) => Card(
-                              elevation: 0,
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: colorScheme.outline.withOpacity(0.15))),
-                              child: ListTile(
-                                leading: Icon(
-                                  task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                                  color: task.isCompleted ? Colors.green : colorScheme.primary,
-                                ),
-                                title: Text(
-                                  task.title,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                                child: ListTile(
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0x1F10B981),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.arrow_downward_rounded, color: Color(0xFF10B981), size: 18),
+                                  ),
+                                  title: Text(inc.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
+                                  subtitle: Text(inc.category, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                                  trailing: Text(
+                                    '+${settings.currency}${inc.amount.toStringAsFixed(0)}',
+                                    style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.w800, fontSize: 15),
                                   ),
                                 ),
-                                subtitle: Text('${task.category} • Priority: ${task.priority}'),
-                              ),
-                            )),
-                      ]
-                    ],
-                  ),
-          )
-        ],
+                              )),
+                          const SizedBox(height: 12),
+                        ],
+                        if (dayExpenses.isNotEmpty) ...[
+                          Text(
+                            'EXPENSES',
+                            style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFEF4444), fontSize: 12, letterSpacing: 1.1),
+                          ),
+                          const SizedBox(height: 6),
+                          ...dayExpenses.map((exp) => Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: colorScheme.outline, width: 1),
+                                ),
+                                child: ListTile(
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0x1FEF4444),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.arrow_upward_rounded, color: Color(0xFFEF4444), size: 18),
+                                  ),
+                                  title: Text(exp.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
+                                  subtitle: Text('${exp.category} • ${exp.paymentMethod}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                                  trailing: Text(
+                                    '-${settings.currency}${exp.amount.toStringAsFixed(0)}',
+                                    style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w800, fontSize: 15),
+                                  ),
+                                ),
+                              )),
+                          const SizedBox(height: 12),
+                        ],
+                        if (dayTasks.isNotEmpty) ...[
+                          Text(
+                            'TASKS',
+                            style: TextStyle(fontWeight: FontWeight.w800, color: colorScheme.primary, fontSize: 12, letterSpacing: 1.1),
+                          ),
+                          const SizedBox(height: 6),
+                          ...dayTasks.map((task) => Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: colorScheme.outline, width: 1),
+                                ),
+                                child: ListTile(
+                                  leading: Icon(
+                                    task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                                    color: task.isCompleted ? const Color(0xFF10B981) : colorScheme.onSurfaceVariant,
+                                    size: 20,
+                                  ),
+                                  title: Text(
+                                    task.title,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                      color: task.isCompleted ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
+                                      decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                                    ),
+                                  ),
+                                  subtitle: Text('${task.category} • Priority: ${task.priority}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                                ),
+                              )),
+                        ]
+                      ],
+                    ),
+            )
+          ],
+        ),
       ),
     );
   }

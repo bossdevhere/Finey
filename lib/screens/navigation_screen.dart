@@ -29,16 +29,26 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   void _showAddChoices() {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         final theme = Theme.of(context);
         final colorScheme = theme.colorScheme;
 
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 16,
+            bottom: bottomInset > 0 ? bottomInset + 16 : bottomPadding + 24,
+          ),
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border.all(color: colorScheme.outline, width: 1),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -46,20 +56,34 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             children: [
               Center(
                 child: Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: colorScheme.outline.withOpacity(0.3),
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              Text(
-                'Quick Add Option',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Quick Add',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -68,15 +92,16 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.95,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.0,
                 ),
                 children: [
                   _buildChoiceItem(
                     'Finance',
-                    Icons.account_balance_wallet,
-                    Colors.green,
+                    Icons.account_balance_wallet_rounded,
+                    const Color(0xFF10B981),
+                    colorScheme,
                     () {
                       Navigator.pop(context);
                       _openAddTransactionSheet();
@@ -84,8 +109,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   ),
                   _buildChoiceItem(
                     'Note / List',
-                    Icons.description,
-                    Colors.blue,
+                    Icons.edit_note_rounded,
+                    const Color(0xFF3B82F6),
+                    colorScheme,
                     () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -96,8 +122,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   ),
                   _buildChoiceItem(
                     'To-do Task',
-                    Icons.assignment_turned_in,
-                    Colors.purple,
+                    Icons.task_alt_rounded,
+                    const Color(0xFF8B5CF6),
+                    colorScheme,
                     () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -108,8 +135,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   ),
                   _buildChoiceItem(
                     'Shopping',
-                    Icons.shopping_cart,
-                    Colors.orange,
+                    Icons.shopping_bag_outlined,
+                    const Color(0xFFF59E0B),
+                    colorScheme,
                     () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -120,8 +148,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   ),
                   _buildChoiceItem(
                     'Reminder',
-                    Icons.alarm,
-                    Colors.red,
+                    Icons.notifications_active_outlined,
+                    const Color(0xFFEF4444),
+                    colorScheme,
                     () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -139,28 +168,41 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     );
   }
 
-  Widget _buildChoiceItem(String title, IconData icon, Color color, VoidCallback onTap) {
-    return Card(
-      elevation: 0,
-      color: color.withOpacity(0.06),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: color.withOpacity(0.15)),
-      ),
+  Widget _buildChoiceItem(String title, IconData icon, Color accentColor, ColorScheme colorScheme, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: accentColor.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: accentColor.withOpacity(0.2), width: 1),
+          ),
+          padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 28),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: accentColor, size: 24),
+              ),
               const SizedBox(height: 8),
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  color: colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -173,6 +215,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddTransactionBottomSheet(),
     );
@@ -181,6 +224,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationIndexProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       body: IndexedStack(
@@ -188,39 +232,51 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         children: _screens,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddChoices,
-        shape: const CircleBorder(),
-        elevation: 4,
-        child: const Icon(Icons.add, size: 30),
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: FloatingActionButton(
+          onPressed: _showAddChoices,
+          shape: const CircleBorder(),
+          elevation: 3,
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+          child: const Icon(Icons.add_rounded, size: 28),
+        ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (index) {
-          ref.read(navigationIndexProvider.notifier).state = index;
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: theme.colorScheme.outline, width: 0.5),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Analytics',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Notes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          selectedIndex: currentIndex,
+          onDestinationSelected: (index) {
+            ref.read(navigationIndexProvider.notifier).state = index;
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.grid_view_rounded),
+              selectedIcon: Icon(Icons.grid_view_rounded),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.insights_rounded),
+              selectedIcon: Icon(Icons.insights_rounded),
+              label: 'Analytics',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.edit_note_rounded),
+              selectedIcon: Icon(Icons.edit_note_rounded),
+              label: 'Notes',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }
