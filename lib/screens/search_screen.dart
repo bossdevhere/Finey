@@ -23,7 +23,7 @@ class SearchScreen extends ConsumerWidget {
           autofocus: true,
           style: TextStyle(color: colorScheme.onSurface, fontSize: 17, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
-            hintText: 'Search expenses, notes, tasks...',
+            hintText: 'Search expenses, notes...',
             hintStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
@@ -53,7 +53,7 @@ class SearchScreen extends ConsumerWidget {
                     Icon(Icons.search_rounded, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
                     const SizedBox(height: 12),
                     Text(
-                      'Type to search across all entries...',
+                      'Type to search across expenses and notes...',
                       style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -140,54 +140,6 @@ class SearchScreen extends ConsumerWidget {
                                     MaterialPageRoute(builder: (context) => NoteDetailScreen(note: note)),
                                   );
                                 },
-                              ),
-                            )),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Tasks matches
-                      if (searchResult.matchingTasks.isNotEmpty) ...[
-                        _buildHeader('TASKS', searchResult.matchingTasks.length, colorScheme),
-                        const SizedBox(height: 6),
-                        ...searchResult.matchingTasks.map((t) => Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: colorScheme.outline, width: 1),
-                              ),
-                              child: ListTile(
-                                leading: Icon(
-                                  t.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                                  color: t.isCompleted ? const Color(0xFF10B981) : colorScheme.onSurfaceVariant,
-                                  size: 20,
-                                ),
-                                title: Text(t.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
-                                subtitle: Text('${t.category} • Due: ${DateFormat('dd MMM').format(t.dueDate)}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
-                              ),
-                            )),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Shopping Items matches
-                      if (searchResult.matchingShoppingItems.isNotEmpty) ...[
-                        _buildHeader('SHOPPING ITEMS', searchResult.matchingShoppingItems.length, colorScheme),
-                        const SizedBox(height: 6),
-                        ...searchResult.matchingShoppingItems.map((s) => Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: colorScheme.outline, width: 1),
-                              ),
-                              child: ListTile(
-                                leading: Checkbox(
-                                  value: s.isPurchased,
-                                  activeColor: const Color(0xFF10B981),
-                                  onChanged: null,
-                                ),
-                                title: Text(s.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface)),
-                                subtitle: Text('Qty: ${s.quantity} • Est: $currency${s.estimatedCost.toStringAsFixed(1)}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
                               ),
                             )),
                       ],

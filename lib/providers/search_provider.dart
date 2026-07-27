@@ -1,33 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'expense_provider.dart';
 import 'note_provider.dart';
-import 'task_provider.dart';
-import 'shopping_provider.dart';
 import '../models/expense.dart';
 import '../models/note.dart';
-import '../models/task.dart';
-import '../models/shopping_item.dart';
 
 final globalSearchQueryProvider = StateProvider<String>((ref) => '');
 
 class GlobalSearchResult {
   final List<Expense> matchingExpenses;
   final List<Note> matchingNotes;
-  final List<Task> matchingTasks;
-  final List<ShoppingItem> matchingShoppingItems;
 
   GlobalSearchResult({
     required this.matchingExpenses,
     required this.matchingNotes,
-    required this.matchingTasks,
-    required this.matchingShoppingItems,
   });
 
-  bool get isEmpty =>
-      matchingExpenses.isEmpty &&
-      matchingNotes.isEmpty &&
-      matchingTasks.isEmpty &&
-      matchingShoppingItems.isEmpty;
+  bool get isEmpty => matchingExpenses.isEmpty && matchingNotes.isEmpty;
 }
 
 final globalSearchResultProvider = Provider<GlobalSearchResult>((ref) {
@@ -36,15 +24,11 @@ final globalSearchResultProvider = Provider<GlobalSearchResult>((ref) {
     return GlobalSearchResult(
       matchingExpenses: [],
       matchingNotes: [],
-      matchingTasks: [],
-      matchingShoppingItems: [],
     );
   }
 
   final expenses = ref.watch(expenseProvider);
   final notes = ref.watch(noteProvider);
-  final tasks = ref.watch(taskProvider);
-  final shoppingItems = ref.watch(shoppingProvider);
 
   final matchingExpenses = expenses
       .where((e) =>
@@ -60,21 +44,8 @@ final globalSearchResultProvider = Provider<GlobalSearchResult>((ref) {
           n.checklist.any((item) => item.toLowerCase().contains(query)))
       .toList();
 
-  final matchingTasks = tasks
-      .where((t) =>
-          t.title.toLowerCase().contains(query) ||
-          t.description.toLowerCase().contains(query) ||
-          t.category.toLowerCase().contains(query))
-      .toList();
-
-  final matchingShoppingItems = shoppingItems
-      .where((s) => s.name.toLowerCase().contains(query))
-      .toList();
-
   return GlobalSearchResult(
     matchingExpenses: matchingExpenses,
     matchingNotes: matchingNotes,
-    matchingTasks: matchingTasks,
-    matchingShoppingItems: matchingShoppingItems,
   );
 });

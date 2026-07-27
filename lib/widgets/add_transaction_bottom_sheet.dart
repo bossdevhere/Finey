@@ -29,6 +29,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
   String _expenseCategory = 'Food';
   String _incomeCategory = 'Salary';
   String _paymentMethod = 'Cash';
+  String? _amountError;
 
   @override
   void initState() {
@@ -49,52 +50,63 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
   }
 
   void _saveTransaction() {
-    final title = _titleController.text.trim();
+    final rawTitle = _titleController.text.trim();
     final amtText = _amountController.text.trim();
-    if (title.isEmpty || amtText.isEmpty) return;
-
     final double? amount = double.tryParse(amtText);
-    if (amount == null || amount <= 0) return;
 
+    setState(() {
+      if (amtText.isEmpty) {
+        _amountError = 'Amount is required';
+      } else if (amount == null || amount <= 0) {
+        _amountError = 'Please enter a valid positive amount';
+      } else {
+        _amountError = null;
+      }
+    });
+
+    if (_amountError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _amountError!,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
+
+    final double validAmount = amount!;
     final isExpense = _tabController.index == 0;
+    final title = rawTitle.isEmpty ? (isExpense ? _expenseCategory : _incomeCategory) : rawTitle;
 
     if (isExpense) {
       final exp = Expense(
         id: const Uuid().v4(),
         title: title,
-        amount: amount,
+        amount: validAmount,
         category: _expenseCategory,
         description: _descController.text.trim(),
         date: _selectedDate,
         paymentMethod: _paymentMethod,
       );
       ref.read(expenseProvider.notifier).addExpense(exp);
-
-      // Check budget warning
-      final settings = ref.read(settingsProvider);
-      final currentExpenses = ref.read(expenseProvider);
-      final double totalCurrentExpense = currentExpenses
-          .where((e) => e.date.year == DateTime.now().year && e.date.month == DateTime.now().month)
-          .fold(0, (sum, item) => sum + item.amount);
-
-      if (settings.monthlyBudget > 0 && totalCurrentExpense + amount > settings.monthlyBudget) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            content: Text(
-              '⚠️ Budget Limit Exceeded! Limit: ${settings.currency}${settings.monthlyBudget.toStringAsFixed(0)}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        );
-      }
     } else {
       final inc = Income(
         id: const Uuid().v4(),
         title: title,
-        amount: amount,
+        amount: validAmount,
         category: _incomeCategory,
         date: _selectedDate,
         notes: _descController.text.trim(),
@@ -206,7 +218,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
               textCapitalization: TextCapitalization.sentences,
               style: TextStyle(color: colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
               decoration: const InputDecoration(
-                labelText: 'Title / Description',
+                labelText: 'Title / Description (Optional)',
                 hintText: 'e.g. Grocery, Salary, Coffee',
               ),
             ),
@@ -217,8 +229,14 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(color: colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w600),
+              onChanged: (_) {
+                if (_amountError != null) {
+                  setState(() => _amountError = null);
+                }
+              },
               decoration: InputDecoration(
-                labelText: 'Amount',
+                labelText: 'Amount *',
+                errorText: _amountError,
                 prefixText: '${ref.read(settingsProvider).currency} ',
                 prefixStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 16),
               ),

@@ -15,6 +15,7 @@ class HistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  String _selectedFilter = 'Month'; // 'Day', 'Week', 'Month', 'All'
   String? _selectedMonthKey;
 
   @override
@@ -48,17 +49,37 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     final selectedKey = _selectedMonthKey ?? sortedMonthKeys.first;
 
-    // Filter transactions for the selected month
-    final monthlyTransactions = allTransactions.where((tx) {
-      return DateFormat('MMMM yyyy').format(tx.date) == selectedKey;
-    }).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    // Filter transactions based on selected filter
+    final now = DateTime.now();
+    List<dynamic> filteredTransactions = [];
 
-    // Calculate monthly summary
+    if (_selectedFilter == 'Day') {
+      filteredTransactions = allTransactions.where((tx) {
+        return tx.date.year == now.year && tx.date.month == now.month && tx.date.day == now.day;
+      }).toList();
+    } else if (_selectedFilter == 'Week') {
+      final todayMidnight = DateTime(now.year, now.month, now.day);
+      final startOfWeek = todayMidnight.subtract(Duration(days: now.weekday - 1));
+      final endOfWeek = startOfWeek.add(const Duration(days: 7));
+      filteredTransactions = allTransactions.where((tx) {
+        return !tx.date.isBefore(startOfWeek) && tx.date.isBefore(endOfWeek);
+      }).toList();
+    } else if (_selectedFilter == 'Month') {
+      filteredTransactions = allTransactions.where((tx) {
+        return DateFormat('MMMM yyyy').format(tx.date) == selectedKey;
+      }).toList();
+    } else {
+      // 'All'
+      filteredTransactions = List.from(allTransactions);
+    }
+
+    filteredTransactions.sort((a, b) => b.date.compareTo(a.date));
+
+    // Calculate summary for filtered set
     double totalIncome = 0;
     double totalExpense = 0;
 
-    for (final tx in monthlyTransactions) {
+    for (final tx in filteredTransactions) {
       if (tx is Expense) {
         totalExpense += tx.amount;
       } else if (tx is Income) {
@@ -76,7 +97,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Month Picker & Summary Card
+            // Filter Pills & Summary Container
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Container(
@@ -85,56 +106,61 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: colorScheme.outline, width: 1),
                 ),
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(18.0),
                 child: Column(
                   children: [
-                    // Selective Month Dropdown
+                    // Timeframe Filter Buttons: Day, Week, Month, All
+                    _buildFilterSelector(colorScheme),
+                    const SizedBox(height: 16),
+
+                    // Secondary Sub-filter Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Filter Month',
+                          _getFilterTitle(now, selectedKey),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontSize: 14,
                             color: colorScheme.onSurface,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: colorScheme.outlineVariant,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: DropdownButton<String>(
-                            value: selectedKey,
-                            underline: const SizedBox(),
-                            icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.onSurface),
-                            dropdownColor: colorScheme.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            items: sortedMonthKeys.map((key) {
-                              return DropdownMenuItem<String>(
-                                value: key,
-                                child: Text(
-                                  key,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: colorScheme.onSurface,
+                        if (_selectedFilter == 'Month')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: colorScheme.outlineVariant,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: DropdownButton<String>(
+                              value: selectedKey,
+                              underline: const SizedBox(),
+                              icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.onSurface),
+                              dropdownColor: colorScheme.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              items: sortedMonthKeys.map((key) {
+                                return DropdownMenuItem<String>(
+                                  value: key,
+                                  child: Text(
+                                    key,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: colorScheme.onSurface,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedMonthKey = val;
-                              });
-                            },
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedMonthKey = val;
+                                });
+                              },
+                            ),
                           ),
-                        ),
                       ],
                     ),
-                    Divider(height: 28, color: colorScheme.outline),
+                    Divider(height: 24, color: colorScheme.outline),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -150,18 +176,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
             // Transactions List
             Expanded(
-              child: monthlyTransactions.isEmpty
+              child: filteredTransactions.isEmpty
                   ? Center(
                       child: Text(
-                        'No transactions found for $selectedKey',
+                        'No transactions found for this filter',
                         style: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
                       ),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: monthlyTransactions.length,
+                      itemCount: filteredTransactions.length,
                       itemBuilder: (context, index) {
-                        final item = monthlyTransactions[index];
+                        final item = filteredTransactions[index];
                         final isExpense = item is Expense;
                         final color = isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981);
                         final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(item.date);
@@ -248,6 +274,70 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildFilterSelector(ColorScheme colorScheme) {
+    final filters = ['Day', 'Week', 'Month', 'All'];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colorScheme.outlineVariant,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: filters.map((f) {
+          final isSelected = _selectedFilter == f;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedFilter = f;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? colorScheme.surface : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  f,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  String _getFilterTitle(DateTime now, String selectedKey) {
+    if (_selectedFilter == 'Day') {
+      return 'Today (${DateFormat('dd MMM').format(now)})';
+    } else if (_selectedFilter == 'Week') {
+      return 'This Week (Mon - Sun)';
+    } else if (_selectedFilter == 'Month') {
+      return 'Selected Month';
+    } else {
+      return 'All Transactions';
+    }
   }
 
   Widget _buildSummaryItem(String label, String value, Color accentColor, ColorScheme colorScheme) {

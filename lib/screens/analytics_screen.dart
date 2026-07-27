@@ -14,6 +14,18 @@ class AnalyticsScreen extends ConsumerStatefulWidget {
   ConsumerState<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
+class _TimelinePoint {
+  final String label;
+  final double expense;
+  final double income;
+
+  _TimelinePoint({
+    required this.label,
+    required this.expense,
+    required this.income,
+  });
+}
+
 class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   String _selectedPeriod = 'Monthly'; // Daily, Weekly, Monthly, Yearly
 
@@ -48,6 +60,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         highestCategory = cat;
       }
     });
+
+    // Timeline data points for Bar Chart & Line Chart
+    final timelinePoints = _getTimelinePoints(expenses, incomes);
 
     return Scaffold(
       appBar: AppBar(
@@ -97,7 +112,27 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Pie Chart: Category breakdown
+            // 1. Bar Chart: Income vs Expense Comparison
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _sectionTitle('Income & Expense Comparison', colorScheme),
+                _buildChartLegend(colorScheme),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              padding: const EdgeInsets.all(20.0),
+              child: _buildBarChart(timelinePoints, settings.currency, colorScheme),
+            ),
+            const SizedBox(height: 24),
+
+            // 2. Pie Chart: Category breakdown
             _sectionTitle('Category Distribution', colorScheme),
             const SizedBox(height: 12),
             Container(
@@ -175,8 +210,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Line Chart: Spending & Income Trends
-            _sectionTitle('Financial Trends', colorScheme),
+            // 3. Line Chart: Spending & Income Trends
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _sectionTitle('Financial Trends', colorScheme),
+                _buildChartLegend(colorScheme),
+              ],
+            ),
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
@@ -185,48 +226,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 border: Border.all(color: colorScheme.outline, width: 1),
               ),
               padding: const EdgeInsets.all(20.0),
-              child: SizedBox(
-                height: 200,
-                child: (expenses.isEmpty && incomes.isEmpty)
-                    ? Center(
-                        child: Text(
-                          'No trend data logged yet',
-                          style: TextStyle(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
-                        ),
-                      )
-                    : LineChart(
-                        LineChartData(
-                          gridData: const FlGridData(show: false),
-                          titlesData: const FlTitlesData(
-                            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            // Expenses line
-                            LineChartBarData(
-                              spots: _buildLineSpots(expenses),
-                              isCurved: true,
-                              color: const Color(0xFFEF4444),
-                              barWidth: 3.5,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(show: true, color: const Color(0xFFEF4444).withOpacity(0.1)),
-                            ),
-                            // Incomes line
-                            LineChartBarData(
-                              spots: _buildLineSpotsForIncome(incomes),
-                              isCurved: true,
-                              color: const Color(0xFF10B981),
-                              barWidth: 3.5,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(show: true, color: const Color(0xFF10B981).withOpacity(0.1)),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
+              child: _buildLineChart(timelinePoints, settings.currency, colorScheme),
             ),
             const SizedBox(height: 24),
 
@@ -252,6 +252,267 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             ),
             const SizedBox(height: 32),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartLegend(ColorScheme colorScheme) {
+    return Row(
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Color(0xFF10B981),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text('Income', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant)),
+          ],
+        ),
+        const SizedBox(width: 12),
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text('Expense', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBarChart(List<_TimelinePoint> points, String currency, ColorScheme scheme) {
+    if (points.every((p) => p.expense == 0 && p.income == 0)) {
+      return SizedBox(
+        height: 180,
+        child: Center(
+          child: Text(
+            'No activity recorded for this period',
+            style: TextStyle(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+          ),
+        ),
+      );
+    }
+
+    double maxY = 0;
+    for (var p in points) {
+      if (p.expense > maxY) maxY = p.expense;
+      if (p.income > maxY) maxY = p.income;
+    }
+    if (maxY == 0) maxY = 100;
+    maxY = maxY * 1.2;
+
+    return SizedBox(
+      height: 220,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxY,
+            barTouchData: BarTouchData(
+              touchTooltipData: BarTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
+                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                  final isIncome = rodIndex == 0;
+                  final type = isIncome ? 'Income' : 'Expense';
+                  return BarTooltipItem(
+                    '$type: $currency${rod.toY.toStringAsFixed(0)}',
+                    TextStyle(
+                      color: isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  );
+                },
+              ),
+            ),
+            titlesData: FlTitlesData(
+              show: true,
+              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 28,
+                  getTitlesWidget: (value, meta) {
+                    final idx = value.toInt();
+                    if (idx >= 0 && idx < points.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          points[idx].label,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
+            barGroups: List.generate(points.length, (i) {
+              final p = points[i];
+              return BarChartGroupData(
+                x: i,
+                barRods: [
+                  BarChartRodData(
+                    toY: p.income,
+                    color: const Color(0xFF10B981),
+                    width: 10,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  BarChartRodData(
+                    toY: p.expense,
+                    color: const Color(0xFFEF4444),
+                    width: 10,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLineChart(List<_TimelinePoint> points, String currency, ColorScheme scheme) {
+    if (points.every((p) => p.expense == 0 && p.income == 0)) {
+      return SizedBox(
+        height: 180,
+        child: Center(
+          child: Text(
+            'No trend data logged for this period',
+            style: TextStyle(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+          ),
+        ),
+      );
+    }
+
+    double maxY = 0;
+    for (var p in points) {
+      if (p.expense > maxY) maxY = p.expense;
+      if (p.income > maxY) maxY = p.income;
+    }
+    if (maxY == 0) maxY = 100;
+    maxY = maxY * 1.2;
+
+    final incomeSpots = List.generate(points.length, (i) => FlSpot(i.toDouble(), points[i].income));
+    final expenseSpots = List.generate(points.length, (i) => FlSpot(i.toDouble(), points[i].expense));
+
+    return SizedBox(
+      height: 220,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 4.0),
+        child: LineChart(
+          LineChartData(
+            clipData: const FlClipData.all(),
+            minX: 0,
+            maxX: (points.length - 1).toDouble(),
+            maxY: maxY,
+            minY: 0,
+            lineTouchData: LineTouchData(
+              touchTooltipData: LineTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
+                getTooltipItems: (touchedSpots) {
+                  return touchedSpots.map((spot) {
+                    final isIncome = spot.barIndex == 1; // 0: expense, 1: income
+                    final label = isIncome ? 'Income' : 'Expense';
+                    final color = isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+                    return LineTooltipItem(
+                      '$label: $currency${spot.y.toStringAsFixed(0)}',
+                      TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                    );
+                  }).toList();
+                },
+              ),
+            ),
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: scheme.outline.withOpacity(0.2),
+                strokeWidth: 1,
+              ),
+            ),
+            titlesData: FlTitlesData(
+              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 28,
+                  getTitlesWidget: (value, meta) {
+                    final idx = value.toInt();
+                    if (idx >= 0 && idx < points.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          points[idx].label,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+            borderData: FlBorderData(show: false),
+            lineBarsData: [
+              // Expenses Line (Red)
+              LineChartBarData(
+                spots: expenseSpots,
+                isCurved: true,
+                color: const Color(0xFFEF4444),
+                barWidth: 3.5,
+                dotData: const FlDotData(show: true),
+                belowBarData: BarAreaData(
+                  show: true,
+                  color: const Color(0xFFEF4444).withOpacity(0.08),
+                ),
+              ),
+              // Incomes Line (Green)
+              LineChartBarData(
+                spots: incomeSpots,
+                isCurved: true,
+                color: const Color(0xFF10B981),
+                barWidth: 3.5,
+                dotData: const FlDotData(show: true),
+                belowBarData: BarAreaData(
+                  show: true,
+                  color: const Color(0xFF10B981).withOpacity(0.08),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -393,13 +654,23 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   }
 
   // Helper calculation functions
+  DateTime _getStartOfWeek(DateTime now) {
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+    return todayMidnight.subtract(Duration(days: now.weekday - 1));
+  }
+
+  DateTime _getEndOfWeek(DateTime now) {
+    return _getStartOfWeek(now).add(const Duration(days: 7));
+  }
+
   List<Expense> _filterExpenses(List<Expense> list) {
     final now = DateTime.now();
     if (_selectedPeriod == 'Daily') {
       return list.where((e) => e.date.year == now.year && e.date.month == now.month && e.date.day == now.day).toList();
     } else if (_selectedPeriod == 'Weekly') {
-      final start = now.subtract(const Duration(days: 7));
-      return list.where((e) => e.date.isAfter(start)).toList();
+      final start = _getStartOfWeek(now);
+      final end = _getEndOfWeek(now);
+      return list.where((e) => !e.date.isBefore(start) && e.date.isBefore(end)).toList();
     } else if (_selectedPeriod == 'Monthly') {
       return list.where((e) => e.date.year == now.year && e.date.month == now.month).toList();
     } else {
@@ -412,13 +683,146 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     if (_selectedPeriod == 'Daily') {
       return list.where((e) => e.date.year == now.year && e.date.month == now.month && e.date.day == now.day).toList();
     } else if (_selectedPeriod == 'Weekly') {
-      final start = now.subtract(const Duration(days: 7));
-      return list.where((e) => e.date.isAfter(start)).toList();
+      final start = _getStartOfWeek(now);
+      final end = _getEndOfWeek(now);
+      return list.where((e) => !e.date.isBefore(start) && e.date.isBefore(end)).toList();
     } else if (_selectedPeriod == 'Monthly') {
       return list.where((e) => e.date.year == now.year && e.date.month == now.month).toList();
     } else {
       return list.where((e) => e.date.year == now.year).toList();
     }
+  }
+
+  List<_TimelinePoint> _getTimelinePoints(List<Expense> expenses, List<Income> incomes) {
+    final now = DateTime.now();
+    final List<_TimelinePoint> points = [];
+
+    if (_selectedPeriod == 'Daily') {
+      // 6 time slots for Today: 12 AM, 4 AM, 8 AM, 12 PM, 4 PM, 8 PM
+      final slots = ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM'];
+      final expTotals = List<double>.filled(6, 0.0);
+      final incTotals = List<double>.filled(6, 0.0);
+
+      final todayExp = expenses.where((e) => e.date.year == now.year && e.date.month == now.month && e.date.day == now.day);
+      for (var e in todayExp) {
+        final slotIndex = (e.date.hour / 4).floor().clamp(0, 5);
+        expTotals[slotIndex] += e.amount;
+      }
+
+      final todayInc = incomes.where((e) => e.date.year == now.year && e.date.month == now.month && e.date.day == now.day);
+      for (var e in todayInc) {
+        final slotIndex = (e.date.hour / 4).floor().clamp(0, 5);
+        incTotals[slotIndex] += e.amount;
+      }
+
+      for (int i = 0; i < 6; i++) {
+        points.add(_TimelinePoint(
+          label: slots[i],
+          expense: expTotals[i],
+          income: incTotals[i],
+        ));
+      }
+    } else if (_selectedPeriod == 'Weekly') {
+      // Mon..Sun of current week
+      final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      final expTotals = List<double>.filled(7, 0.0);
+      final incTotals = List<double>.filled(7, 0.0);
+
+      final start = _getStartOfWeek(now);
+      final end = _getEndOfWeek(now);
+
+      for (var e in expenses) {
+        if (!e.date.isBefore(start) && e.date.isBefore(end)) {
+          final idx = (e.date.weekday - 1).clamp(0, 6);
+          expTotals[idx] += e.amount;
+        }
+      }
+
+      for (var e in incomes) {
+        if (!e.date.isBefore(start) && e.date.isBefore(end)) {
+          final idx = (e.date.weekday - 1).clamp(0, 6);
+          incTotals[idx] += e.amount;
+        }
+      }
+
+      for (int i = 0; i < 7; i++) {
+        points.add(_TimelinePoint(
+          label: days[i],
+          expense: expTotals[i],
+          income: incTotals[i],
+        ));
+      }
+    } else if (_selectedPeriod == 'Monthly') {
+      // 4 Weeks in current month: W1 (1-7), W2 (8-14), W3 (15-21), W4 (22+)
+      final weeks = ['W1 (1-7)', 'W2 (8-14)', 'W3 (15-21)', 'W4 (22+)'];
+      final expTotals = List<double>.filled(4, 0.0);
+      final incTotals = List<double>.filled(4, 0.0);
+
+      final monthExp = expenses.where((e) => e.date.year == now.year && e.date.month == now.month);
+      for (var e in monthExp) {
+        int idx = 0;
+        if (e.date.day <= 7) {
+          idx = 0;
+        } else if (e.date.day <= 14) {
+          idx = 1;
+        } else if (e.date.day <= 21) {
+          idx = 2;
+        } else {
+          idx = 3;
+        }
+        expTotals[idx] += e.amount;
+      }
+
+      final monthInc = incomes.where((e) => e.date.year == now.year && e.date.month == now.month);
+      for (var e in monthInc) {
+        int idx = 0;
+        if (e.date.day <= 7) {
+          idx = 0;
+        } else if (e.date.day <= 14) {
+          idx = 1;
+        } else if (e.date.day <= 21) {
+          idx = 2;
+        } else {
+          idx = 3;
+        }
+        incTotals[idx] += e.amount;
+      }
+
+      for (int i = 0; i < 4; i++) {
+        points.add(_TimelinePoint(
+          label: weeks[i],
+          expense: expTotals[i],
+          income: incTotals[i],
+        ));
+      }
+    } else {
+      // Yearly: 12 months
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final expTotals = List<double>.filled(12, 0.0);
+      final incTotals = List<double>.filled(12, 0.0);
+
+      final yearExp = expenses.where((e) => e.date.year == now.year);
+      for (var e in yearExp) {
+        final idx = (e.date.month - 1).clamp(0, 11);
+        expTotals[idx] += e.amount;
+      }
+
+      final yearInc = incomes.where((e) => e.date.year == now.year);
+      for (var e in yearInc) {
+        final idx = (e.date.month - 1).clamp(0, 11);
+        incTotals[idx] += e.amount;
+      }
+
+      for (int i = 0; i < 12; i++) {
+        points.add(_TimelinePoint(
+          label: months[i],
+          expense: expTotals[i],
+          income: incTotals[i],
+        ));
+      }
+    }
+
+    return points;
   }
 
   double _calculateAvgDaily(List<Expense> list) {
@@ -471,25 +875,5 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       default:
         return scheme.onSurfaceVariant;
     }
-  }
-
-  List<FlSpot> _buildLineSpots(List<Expense> list) {
-    if (list.isEmpty) return [const FlSpot(0, 0)];
-    list.sort((a, b) => a.date.compareTo(b.date));
-    final double maxVal = list.fold(0, (max, e) => e.amount > max ? e.amount : max);
-    return list.map((e) {
-      final index = list.indexOf(e).toDouble();
-      return FlSpot(index, maxVal > 0 ? (e.amount / maxVal) * 10 : 0.0);
-    }).toList();
-  }
-
-  List<FlSpot> _buildLineSpotsForIncome(List<Income> list) {
-    if (list.isEmpty) return [const FlSpot(0, 0)];
-    list.sort((a, b) => a.date.compareTo(b.date));
-    final double maxVal = list.fold(0, (max, e) => e.amount > max ? e.amount : max);
-    return list.map((e) {
-      final index = list.indexOf(e).toDouble();
-      return FlSpot(index, maxVal > 0 ? (e.amount / maxVal) * 10 : 0.0);
-    }).toList();
   }
 }

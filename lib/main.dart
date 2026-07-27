@@ -5,6 +5,7 @@ import 'database/hive_database.dart';
 import 'services/notification_service.dart';
 import 'providers/settings_provider.dart';
 import 'screens/navigation_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -204,7 +205,7 @@ class MyApp extends ConsumerWidget {
       ),
 
       themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: const NavigationScreen(),
+      home: const SplashScreen(),
     );
   }
 }

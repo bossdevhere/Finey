@@ -4,10 +4,7 @@ import '../providers/expense_provider.dart';
 import '../providers/income_provider.dart';
 import '../providers/note_provider.dart';
 import '../providers/settings_provider.dart';
-import '../providers/navigation_provider.dart';
-import '../widgets/calculator_widget.dart';
 import 'calendar_screen.dart';
-import 'search_screen.dart';
 import 'history_screen.dart';
 import '../models/expense.dart';
 
@@ -92,18 +89,6 @@ class HomeScreen extends ConsumerWidget {
                   Row(
                     children: [
                       _buildHeaderIconButton(
-                        icon: Icons.search_rounded,
-                        tooltip: 'Search',
-                        colorScheme: colorScheme,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const SearchScreen()),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _buildHeaderIconButton(
                         icon: Icons.calendar_month_rounded,
                         tooltip: 'Calendar',
                         colorScheme: colorScheme,
@@ -111,21 +96,6 @@ class HomeScreen extends ConsumerWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const CalendarScreen()),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _buildHeaderIconButton(
-                        icon: Icons.calculate_outlined,
-                        tooltip: 'Calculator',
-                        colorScheme: colorScheme,
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            useSafeArea: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) => const CalculatorWidget(),
                           );
                         },
                       ),

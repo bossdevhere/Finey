@@ -5,8 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import '../database/hive_database.dart';
 import '../models/expense.dart';
 import '../models/income.dart';
-import '../models/shopping_item.dart';
-import '../models/task.dart';
 import '../models/note.dart';
 import '../models/settings.dart';
 
@@ -34,7 +32,7 @@ class ExportService {
     String csvContent = const ListToCsvConverter().convert(rows);
 
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/PocketLife/Exports');
+    final backupDir = Directory('${directory.path}/Finovo/Exports');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
@@ -66,7 +64,7 @@ class ExportService {
     String csvContent = const ListToCsvConverter().convert(rows);
 
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/PocketLife/Exports');
+    final backupDir = Directory('${directory.path}/Finovo/Exports');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
@@ -97,26 +95,6 @@ class ExportService {
       'notes': i.notes,
     }).toList();
 
-    final shopping = HiveDatabase.shoppingBox.values.map((s) => {
-      'id': s.id,
-      'name': s.name,
-      'quantity': s.quantity,
-      'price': s.price,
-      'estimatedCost': s.estimatedCost,
-      'isPurchased': s.isPurchased,
-    }).toList();
-
-    final tasks = HiveDatabase.taskBox.values.map((t) => {
-      'id': t.id,
-      'title': t.title,
-      'description': t.description,
-      'priority': t.priority,
-      'dueDate': t.dueDate.millisecondsSinceEpoch,
-      'hasReminder': t.hasReminder,
-      'isCompleted': t.isCompleted,
-      'category': t.category,
-    }).toList();
-
     final notes = HiveDatabase.noteBox.values.map((n) => {
       'id': n.id,
       'title': n.title,
@@ -142,8 +120,6 @@ class ExportService {
       'exportedAt': DateTime.now().millisecondsSinceEpoch,
       'expenses': expenses,
       'incomes': incomes,
-      'shopping_items': shopping,
-      'tasks': tasks,
       'notes': notes,
       'settings': settingsMap,
     };
@@ -151,7 +127,7 @@ class ExportService {
     final jsonContent = jsonEncode(backupData);
 
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/PocketLife/Backups');
+    final backupDir = Directory('${directory.path}/Finovo/Backups');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
@@ -206,38 +182,6 @@ class ExportService {
         }
       }
 
-      // Restore Shopping Items
-      if (backupData['shopping_items'] != null) {
-        for (var item in backupData['shopping_items']) {
-          final s = ShoppingItem(
-            id: item['id'],
-            name: item['name'],
-            quantity: item['quantity'],
-            price: (item['price'] as num).toDouble(),
-            estimatedCost: (item['estimatedCost'] as num).toDouble(),
-            isPurchased: item['isPurchased'],
-          );
-          await HiveDatabase.shoppingBox.put(s.id, s);
-        }
-      }
-
-      // Restore Tasks
-      if (backupData['tasks'] != null) {
-        for (var item in backupData['tasks']) {
-          final t = Task(
-            id: item['id'],
-            title: item['title'],
-            description: item['description'],
-            priority: item['priority'],
-            dueDate: DateTime.fromMillisecondsSinceEpoch(item['dueDate']),
-            hasReminder: item['hasReminder'],
-            isCompleted: item['isCompleted'],
-            category: item['category'],
-          );
-          await HiveDatabase.taskBox.put(t.id, t);
-        }
-      }
-
       // Restore Notes
       if (backupData['notes'] != null) {
         for (var item in backupData['notes']) {
@@ -261,7 +205,7 @@ class ExportService {
         final item = backupData['settings'];
         final s = Settings(
           isDarkMode: item['isDarkMode'] ?? true,
-          themeColor: item['themeColor'] ?? 0xFF6200EE,
+          themeColor: item['themeColor'] ?? 0xFF10B981,
           currency: item['currency'] ?? '₹',
           monthlyBudget: (item['monthlyBudget'] as num?)?.toDouble() ?? 30000.0,
         );
@@ -277,7 +221,7 @@ class ExportService {
   // Get list of local backups
   static Future<List<File>> getLocalBackups() async {
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/PocketLife/Backups');
+    final backupDir = Directory('${directory.path}/Finovo/Backups');
     if (!await backupDir.exists()) return [];
 
     final list = backupDir.listSync();
@@ -285,6 +229,6 @@ class ExportService {
         .whereType<File>()
         .where((file) => file.path.endsWith('.json'))
         .toList()
-      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync())); // Newest first
+      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
   }
 }
