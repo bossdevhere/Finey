@@ -12,7 +12,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _showCurrencyDialog(String currentCurrency, ColorScheme colorScheme) {
-    final currencies = ['₹', '\$', '€', '£', '¥', '₩', 'R\$'];
+    final currencies = ['₹', '\$', '€', '£', '¥', '₩'];
     showDialog(
       context: context,
       builder: (context) => SimpleDialog(
