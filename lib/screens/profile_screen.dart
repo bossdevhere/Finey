@@ -11,6 +11,51 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  void _showBudgetDialog(double currentBudget, String currency, ColorScheme colorScheme) {
+    final controller = TextEditingController(text: currentBudget > 0 ? currentBudget.toStringAsFixed(0) : '');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Set Monthly Limit', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+          decoration: InputDecoration(
+            labelText: 'Monthly Spending Limit',
+            hintText: 'e.g. 30000',
+            prefixText: '$currency ',
+            prefixStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              final val = double.tryParse(controller.text.trim());
+              if (val != null && val >= 0) {
+                ref.read(settingsProvider.notifier).updateMonthlyBudget(val);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Save Limit', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showCurrencyDialog(String currentCurrency, ColorScheme colorScheme) {
     final currencies = ['₹', '\$', '€', '£', '¥', '₩'];
     showDialog(
@@ -97,6 +142,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               child: Column(
                 children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Monthly Limit',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      settingsObj.monthlyBudget > 0
+                          ? '${settingsObj.currency}${settingsObj.monthlyBudget.toStringAsFixed(0)} monthly spending budget'
+                          : 'Tap to set monthly budget limit',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.account_balance_wallet_outlined, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _showBudgetDialog(settingsObj.monthlyBudget, settingsObj.currency, colorScheme),
+                  ),
+                  Divider(height: 1, color: colorScheme.outline),
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     title: Text(
