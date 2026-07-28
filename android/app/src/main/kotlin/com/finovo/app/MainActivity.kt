@@ -1,4 +1,4 @@
-package com.example.mini_exp_tracker
+package com.finovo.app
 
 import io.flutter.embedding.android.FlutterActivity
 
