@@ -13,45 +13,59 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _showBudgetDialog(double currentBudget, String currency, ColorScheme colorScheme) {
     final controller = TextEditingController(text: currentBudget > 0 ? currentBudget.toStringAsFixed(0) : '');
+    String? errorText;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Set Monthly Limit', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
-            labelText: 'Monthly Spending Limit',
-            hintText: 'e.g. 30000',
-            prefixText: '$currency ',
-            prefixStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () {
-              final val = double.tryParse(controller.text.trim());
-              if (val != null && val >= 0) {
-                ref.read(settingsProvider.notifier).updateMonthlyBudget(val);
-                Navigator.pop(context);
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: colorScheme.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Set Monthly Limit', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+            onChanged: (_) {
+              if (errorText != null) {
+                setDialogState(() => errorText = null);
               }
             },
-            child: const Text('Save Limit', style: TextStyle(fontWeight: FontWeight.bold)),
+            decoration: InputDecoration(
+              labelText: 'Monthly Limit (Max 50,000)',
+              hintText: 'e.g. 30000',
+              errorText: errorText,
+              prefixText: '$currency ',
+              prefixStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                final val = double.tryParse(controller.text.trim());
+                if (val == null || val <= 0) {
+                  setDialogState(() => errorText = 'Please enter a valid amount');
+                } else if (val > 50000) {
+                  setDialogState(() => errorText = "You can't put more than 50,000 monthly limit");
+                } else {
+                  ref.read(settingsProvider.notifier).updateMonthlyBudget(val);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Save Limit', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
       ),
     );
   }

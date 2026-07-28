@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -59,37 +60,44 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        'lib/assets/logo.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, err, stack) {
-                          return Icon(Icons.account_balance_wallet_rounded, size: 96, color: colorScheme.primary);
-                        },
-                      );
-                    },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: Image.asset(
+                      'assets/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'lib/assets/logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, err, stack) {
+                            return const Icon(
+                              Icons.account_balance_wallet_rounded,
+                              size: 96,
+                              color: Color(0xFF10B981),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

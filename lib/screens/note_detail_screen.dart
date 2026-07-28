@@ -180,7 +180,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                       ),
                       decoration: InputDecoration(
                         hintText: 'Title',
-                        hintStyle: TextStyle(color: noteTextColor.withOpacity(0.5)),
+                        hintStyle: TextStyle(color: noteTextColor.withValues(alpha: 0.5)),
                         border: InputBorder.none,
                       ),
                     ),
@@ -192,11 +192,11 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.5,
-                          color: noteTextColor.withOpacity(0.9),
+                          color: noteTextColor.withValues(alpha: 0.9),
                         ),
                         decoration: InputDecoration(
                           hintText: 'Write your thoughts here...',
-                          hintStyle: TextStyle(color: noteTextColor.withOpacity(0.4)),
+                          hintStyle: TextStyle(color: noteTextColor.withValues(alpha: 0.4)),
                           border: InputBorder.none,
                         ),
                       ),
@@ -230,7 +230,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.close, color: noteTextColor.withOpacity(0.5)),
+                                icon: Icon(Icons.close, color: noteTextColor.withValues(alpha: 0.5)),
                                 onPressed: () {
                                   setState(() {
                                     _checklist.removeAt(index);
@@ -246,7 +246,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                       // Checklist item input row
                       Row(
                         children: [
-                          Icon(Icons.add, color: noteTextColor.withOpacity(0.5)),
+                          Icon(Icons.add, color: noteTextColor.withValues(alpha: 0.5)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
@@ -254,7 +254,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                               style: TextStyle(color: noteTextColor),
                               decoration: InputDecoration(
                                 hintText: 'Add checklist item...',
-                                hintStyle: TextStyle(color: noteTextColor.withOpacity(0.4)),
+                                hintStyle: TextStyle(color: noteTextColor.withValues(alpha: 0.4)),
                                 border: InputBorder.none,
                               ),
                               onSubmitted: (_) => _addChecklistItem(),
@@ -277,7 +277,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                   'Last modified: ${widget.note == null ? "Just now" : DateFormat('dd MMM yyyy, hh:mm a').format(widget.note!.lastModified)}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: noteTextColor.withOpacity(0.5),
+                    color: noteTextColor.withValues(alpha: 0.5),
                   ),
                 ),
               ),

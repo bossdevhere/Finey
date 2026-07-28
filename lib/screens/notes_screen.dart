@@ -50,7 +50,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colorScheme.primary.withOpacity(0.12),
+              color: colorScheme.primary.withValues(alpha: 0.12),
             ),
             child: IconButton(
               icon: Icon(Icons.add_rounded, color: colorScheme.primary),
@@ -102,7 +102,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit_note_rounded, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                          Icon(Icons.edit_note_rounded, size: 56, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
                           const SizedBox(height: 12),
                           Text(
                             _searchQuery.isEmpty
@@ -150,7 +150,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: noteColor == colorScheme.surface ? colorScheme.surface : noteColor.withOpacity(0.12),
+            color: noteColor == colorScheme.surface ? colorScheme.surface : noteColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: note.isPinned ? colorScheme.primary : colorScheme.outline,
@@ -207,7 +207,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: checked
-                                            ? colorScheme.onSurfaceVariant.withOpacity(0.6)
+                                            ? colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
                                             : colorScheme.onSurface,
                                         decoration: checked ? TextDecoration.lineThrough : null,
                                       ),

@@ -85,7 +85,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 eventLoader: getEventsForDay,
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.3),
+                    color: colorScheme.primary.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
                   todayTextStyle: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
@@ -104,7 +104,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   formatButtonVisible: true,
                   titleCentered: true,
                   formatButtonDecoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.12),
+                    color: colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   formatButtonTextStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
@@ -128,7 +128,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.12),
+                      color: colorScheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -146,7 +146,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.event_note_rounded, size: 48, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                          Icon(Icons.event_note_rounded, size: 48, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
                           const SizedBox(height: 8),
                           Text(
                             'No transactions for this day',

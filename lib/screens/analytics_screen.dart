@@ -613,7 +613,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.12),
+              color: accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: accentColor, size: 22),

@@ -189,7 +189,7 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -287,7 +287,7 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
               children: [
                 Row(
                   children: [
-                    _buildButton('C', bg: const Color(0xFFEF4444).withOpacity(0.15), fg: const Color(0xFFEF4444)),
+                    _buildButton('C', bg: const Color(0xFFEF4444).withValues(alpha: 0.15), fg: const Color(0xFFEF4444)),
                     _buildButton('⌫', bg: colorScheme.outlineVariant),
                     _buildButton('%', bg: colorScheme.outlineVariant),
                     _buildButton('÷', bg: colorScheme.primary, fg: colorScheme.onPrimary),

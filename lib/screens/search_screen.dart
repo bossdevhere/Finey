@@ -50,7 +50,7 @@ class SearchScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.search_rounded, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                    Icon(Icons.search_rounded, size: 56, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
                     const SizedBox(height: 12),
                     Text(
                       'Type to search across expenses and notes...',
@@ -64,7 +64,7 @@ class SearchScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off_rounded, size: 56, color: colorScheme.onSurfaceVariant.withOpacity(0.4)),
+                        Icon(Icons.search_off_rounded, size: 56, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
                         const SizedBox(height: 12),
                         Text(
                           'No matches found for "$query"',
@@ -122,7 +122,7 @@ class SearchScreen extends ConsumerWidget {
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary.withOpacity(0.12),
+                                    color: colorScheme.primary.withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(Icons.edit_note_rounded, color: colorScheme.primary, size: 18),
@@ -161,7 +161,7 @@ class SearchScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: colorScheme.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
             child: Text(
               '$count',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: colorScheme.primary),
