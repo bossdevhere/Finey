@@ -116,7 +116,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _sectionTitle('Income & Expense Comparison', colorScheme),
+                Expanded(child: _sectionTitle('Income & Expense Comparison', colorScheme)),
+                const SizedBox(width: 8),
                 _buildChartLegend(colorScheme),
               ],
             ),
@@ -214,7 +215,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _sectionTitle('Financial Trends', colorScheme),
+                Expanded(child: _sectionTitle('Financial Trends', colorScheme)),
+                const SizedBox(width: 8),
                 _buildChartLegend(colorScheme),
               ],
             ),
@@ -349,22 +351,27 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 28,
+                  interval: 1,
                   getTitlesWidget: (value, meta) {
+                    if (value % 1 != 0) return const SizedBox.shrink();
                     final idx = value.toInt();
-                    if (idx >= 0 && idx < points.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          points[idx].label,
-                          style: TextStyle(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
+                    if (idx < 0 || idx >= points.length) return const SizedBox.shrink();
+                    if (points.length > 6 && idx % 2 != 0) {
+                      return const SizedBox.shrink();
                     }
-                    return const SizedBox.shrink();
+                    return SideTitleWidget(
+                      meta: meta,
+                      space: 6,
+                      fitInside: SideTitleFitInsideData.fromTitleMeta(meta),
+                      child: Text(
+                        points[idx].label,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: points.length > 6 ? 10 : 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -465,22 +472,27 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 28,
+                  interval: 1,
                   getTitlesWidget: (value, meta) {
+                    if (value % 1 != 0) return const SizedBox.shrink();
                     final idx = value.toInt();
-                    if (idx >= 0 && idx < points.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          points[idx].label,
-                          style: TextStyle(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
+                    if (idx < 0 || idx >= points.length) return const SizedBox.shrink();
+                    if (points.length > 6 && idx % 2 != 0) {
+                      return const SizedBox.shrink();
                     }
-                    return const SizedBox.shrink();
+                    return SideTitleWidget(
+                      meta: meta,
+                      space: 6,
+                      fitInside: SideTitleFitInsideData.fromTitleMeta(meta),
+                      child: Text(
+                        points[idx].label,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: points.length > 6 ? 10 : 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -753,8 +765,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         ));
       }
     } else if (_selectedPeriod == 'Monthly') {
-      // 4 Weeks in current month: W1 (1-7), W2 (8-14), W3 (15-21), W4 (22+)
-      final weeks = ['W1 (1-7)', 'W2 (8-14)', 'W3 (15-21)', 'W4 (22+)'];
+      // 4 Weeks in current month: W1, W2, W3, W4
+      final weeks = ['W1', 'W2', 'W3', 'W4'];
       final expTotals = List<double>.filled(4, 0.0);
       final incTotals = List<double>.filled(4, 0.0);
 
