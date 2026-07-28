@@ -59,6 +59,8 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
         _amountError = 'Amount is required';
       } else if (amount == null || amount <= 0) {
         _amountError = 'Please enter a valid positive amount';
+      } else if (amount > 1000000000) {
+        _amountError = 'Amount exceeds limit of 1,000,000,000';
       } else {
         _amountError = null;
       }
@@ -87,7 +89,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
       return;
     }
 
-    final double validAmount = amount!;
+    final double validAmount = double.parse(amount!.toStringAsFixed(2));
     final isExpense = _tabController.index == 0;
     final title = rawTitle.isEmpty ? (isExpense ? _expenseCategory : _incomeCategory) : rawTitle;
 
@@ -153,7 +155,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -173,7 +175,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -249,7 +251,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: expCategories.contains(_expenseCategory) ? _expenseCategory : expCategories.first,
+                      initialValue: expCategories.contains(_expenseCategory) ? _expenseCategory : expCategories.first,
                       isExpanded: true,
                       style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500),
                       decoration: const InputDecoration(
@@ -267,7 +269,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: payMethods.contains(_paymentMethod) ? _paymentMethod : payMethods.first,
+                      initialValue: payMethods.contains(_paymentMethod) ? _paymentMethod : payMethods.first,
                       isExpanded: true,
                       style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500),
                       decoration: const InputDecoration(
@@ -286,7 +288,7 @@ class _AddTransactionBottomSheetState extends ConsumerState<AddTransactionBottom
               ),
             ] else ...[
               DropdownButtonFormField<String>(
-                value: incCategories.contains(_incomeCategory) ? _incomeCategory : incCategories.first,
+                initialValue: incCategories.contains(_incomeCategory) ? _incomeCategory : incCategories.first,
                 isExpanded: true,
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500),
                 decoration: const InputDecoration(

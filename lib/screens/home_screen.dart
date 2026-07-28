@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import 'calendar_screen.dart';
 import 'history_screen.dart';
 import '../models/expense.dart';
+import '../models/transaction_item.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -45,10 +46,8 @@ class HomeScreen extends ConsumerWidget {
         ? (totalExpense / settings.monthlyBudget).clamp(0.0, 1.0)
         : 0.0;
 
-    // Combined recent transactions
-    final recentItems = <dynamic>[];
-    recentItems.addAll(expenses);
-    recentItems.addAll(incomes);
+    // Combined recent transactions (strongly typed)
+    final recentItems = <TransactionItem>[...expenses, ...incomes];
     recentItems.sort((a, b) => b.date.compareTo(a.date));
     final displayTransactions = recentItems.take(3).toList();
 
@@ -215,7 +214,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -228,20 +227,24 @@ class HomeScreen extends ConsumerWidget {
           Text(
             'TOTAL NET BALANCE',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.2,
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            '$currency${bal.toStringAsFixed(2)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '$currency${bal.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -267,7 +270,7 @@ class HomeScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: accentColor, size: 12),
@@ -276,7 +279,7 @@ class HomeScreen extends ConsumerWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
@@ -284,12 +287,15 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -302,7 +308,7 @@ class HomeScreen extends ConsumerWidget {
         color: scheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isExceeded ? scheme.error.withOpacity(0.5) : scheme.outline,
+          color: isExceeded ? scheme.error.withValues(alpha: 0.5) : scheme.outline,
           width: 1,
         ),
       ),
@@ -370,7 +376,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentTransactions(List<dynamic> items, String currency, ColorScheme scheme) {
+  Widget _buildRecentTransactions(List<TransactionItem> items, String currency, ColorScheme scheme) {
     return Container(
       decoration: BoxDecoration(
         color: scheme.surface,
@@ -384,18 +390,20 @@ class HomeScreen extends ConsumerWidget {
         separatorBuilder: (context, index) => Divider(height: 1, color: scheme.outline),
         itemBuilder: (context, index) {
           final item = items[index];
-          final isExpense = item is Expense;
+          final isExpense = item.isExpense;
           final color = isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981);
-          final title = isExpense ? item.title : item.title;
-          final amt = isExpense ? item.amount : item.amount;
-          final details = isExpense ? '${item.category} • ${item.paymentMethod}' : item.category;
+          final title = item.title;
+          final amt = item.amount;
+          final details = isExpense && item is Expense
+              ? '${item.category} • ${item.paymentMethod}'
+              : item.category;
 
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -413,7 +421,7 @@ class HomeScreen extends ConsumerWidget {
               style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             ),
             trailing: Text(
-              '${isExpense ? "-" : "+"}$currency${amt.toStringAsFixed(1)}',
+              '${isExpense ? "-" : "+"}$currency${amt.toStringAsFixed(2)}',
               style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 15),
             ),
           );
@@ -488,7 +496,7 @@ class HomeScreen extends ConsumerWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(icon, size: 32, color: scheme.onSurfaceVariant.withOpacity(0.5)),
+            Icon(icon, size: 32, color: scheme.onSurfaceVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 8),
             Text(
               message,

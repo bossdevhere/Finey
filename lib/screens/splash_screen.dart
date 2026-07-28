@@ -89,25 +89,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     },
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Finovo',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Smart Personal Finance',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.5,
-                  ),
-                ),
               ],
             ),
           ),

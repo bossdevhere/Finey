@@ -8,7 +8,7 @@ class SettingsNotifier extends StateNotifier<Settings> {
           HiveDatabase.settingsBox.get('user_settings') ??
               Settings(
                 isDarkMode: true,
-                themeColor: 0xFF2E7D32,
+                themeColor: 0xFF10B981,
                 currency: '₹',
                 monthlyBudget: 30000.0,
               ),
@@ -22,6 +22,10 @@ class SettingsNotifier extends StateNotifier<Settings> {
   Future<void> updateBudget(double budget) async {
     final newSettings = state.copyWith(monthlyBudget: budget);
     await updateSettings(newSettings);
+  }
+
+  Future<void> updateMonthlyBudget(double budget) async {
+    await updateBudget(budget);
   }
 
   Future<void> updateCurrency(String currency) async {
@@ -43,7 +47,7 @@ class SettingsNotifier extends StateNotifier<Settings> {
     await HiveDatabase.clearAll();
     state = Settings(
       isDarkMode: true,
-      themeColor: 0xFF2E7D32,
+      themeColor: 0xFF10B981,
       currency: '₹',
       monthlyBudget: 30000.0,
     );

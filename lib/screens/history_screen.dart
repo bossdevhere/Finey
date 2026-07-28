@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/expense_provider.dart';
 import '../providers/income_provider.dart';
 import '../providers/settings_provider.dart';
-import '../models/expense.dart';
-import '../models/income.dart';
+import '../models/transaction_item.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -26,8 +25,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Combine all activities
-    final allTransactions = <dynamic>[...expenses, ...incomes];
+    // Combine all activities strongly typed
+    final allTransactions = <TransactionItem>[...expenses, ...incomes];
 
     // Group available months for the dropdown selection
     final Map<String, DateTime> monthYears = {};
@@ -47,11 +46,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       monthYears[curKey] = DateTime(DateTime.now().year, DateTime.now().month);
     }
 
-    final selectedKey = _selectedMonthKey ?? sortedMonthKeys.first;
+    final selectedKey = (sortedMonthKeys.contains(_selectedMonthKey))
+        ? _selectedMonthKey!
+        : sortedMonthKeys.first;
 
     // Filter transactions based on selected filter
     final now = DateTime.now();
-    List<dynamic> filteredTransactions = [];
+    List<TransactionItem> filteredTransactions = [];
 
     if (_selectedFilter == 'Day') {
       filteredTransactions = allTransactions.where((tx) {
@@ -69,7 +70,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         return DateFormat('MMMM yyyy').format(tx.date) == selectedKey;
       }).toList();
     } else {
-      // 'All'
       filteredTransactions = List.from(allTransactions);
     }
 
@@ -80,9 +80,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     double totalExpense = 0;
 
     for (final tx in filteredTransactions) {
-      if (tx is Expense) {
+      if (tx.isExpense) {
         totalExpense += tx.amount;
-      } else if (tx is Income) {
+      } else {
         totalIncome += tx.amount;
       }
     }
@@ -188,10 +188,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       itemCount: filteredTransactions.length,
                       itemBuilder: (context, index) {
                         final item = filteredTransactions[index];
-                        final isExpense = item is Expense;
+                        final isExpense = item.isExpense;
                         final color = isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981);
                         final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(item.date);
-                        final desc = isExpense ? item.description : item.notes;
+                        final desc = item.noteOrDescription;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 10),
@@ -205,7 +205,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: color.withOpacity(0.1),
+                                color: color.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -215,7 +215,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               ),
                             ),
                             title: Text(
-                              isExpense ? item.title : item.title,
+                              item.title,
                               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: colorScheme.onSurface),
                             ),
                             subtitle: Text(
@@ -225,7 +225,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                             ),
                             trailing: Text(
-                              '${isExpense ? "-" : "+"}${settings.currency}${item.amount.toStringAsFixed(0)}',
+                              '${isExpense ? "-" : "+"}${settings.currency}${item.amount.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
@@ -304,7 +304,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
+                            color: Colors.black.withValues(alpha: 0.06),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),

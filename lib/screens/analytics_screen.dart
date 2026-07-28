@@ -453,7 +453,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               show: true,
               drawVerticalLine: false,
               getDrawingHorizontalLine: (value) => FlLine(
-                color: scheme.outline.withOpacity(0.2),
+                color: scheme.outline.withValues(alpha: 0.2),
                 strokeWidth: 1,
               ),
             ),
@@ -496,7 +496,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 dotData: const FlDotData(show: true),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: const Color(0xFFEF4444).withOpacity(0.08),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.08),
                 ),
               ),
               // Incomes Line (Green)
@@ -508,7 +508,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 dotData: const FlDotData(show: true),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: const Color(0xFF10B981).withOpacity(0.08),
+                  color: const Color(0xFF10B981).withValues(alpha: 0.08),
                 ),
               ),
             ],

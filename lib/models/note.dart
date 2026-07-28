@@ -62,7 +62,7 @@ class NoteAdapter extends TypeAdapter<Note> {
       isPinned: reader.readBool(),
       isFavorite: reader.readBool(),
       checklist: reader.readStringList(),
-      checklistChecked: reader.readList().cast<bool>(),
+      checklistChecked: List<bool>.from(reader.readList()),
       lastModified: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
     );
   }

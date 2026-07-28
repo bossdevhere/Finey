@@ -1,12 +1,24 @@
 import 'package:hive/hive.dart';
+import 'transaction_item.dart';
 
-class Income {
+class Income implements TransactionItem {
+  @override
   final String id;
+  @override
   final String title;
+  @override
   final double amount;
+  @override
   final String category;
+  @override
   final DateTime date;
   final String notes;
+
+  @override
+  bool get isExpense => false;
+
+  @override
+  String get noteOrDescription => notes;
 
   Income({
     required this.id,

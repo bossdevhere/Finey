@@ -9,7 +9,6 @@ class NotificationService {
   static Future<void> init() async {
     tz.initializeTimeZones();
 
-    // Use default app icon for notifications
     const AndroidInitializationSettings androidInitSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -28,7 +27,7 @@ class NotificationService {
     await _notificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        // Handle notifications clicked
+        // Handle notification interaction
       },
     );
   }
@@ -56,29 +55,35 @@ class NotificationService {
     required DateTime scheduledTime,
     String repeatType = 'One Time',
   }) async {
-    final tz.TZDateTime tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    DateTime targetTime = scheduledTime;
+    final now = DateTime.now();
 
-    // If the scheduled time is in the past, check if it's repeating and adjust, or ignore
-    if (tzTime.isBefore(DateTime.now())) {
+    // Adjust past scheduled times safely without recursive stack overflow
+    if (targetTime.isBefore(now)) {
       if (repeatType == 'Daily') {
-        // Schedule for tomorrow same time
-        final tomorrow = scheduledTime.add(const Duration(days: 1));
-        await scheduleNotification(
-          id: id,
-          title: title,
-          body: body,
-          scheduledTime: tomorrow,
-          repeatType: repeatType,
+        targetTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          scheduledTime.hour,
+          scheduledTime.minute,
+          scheduledTime.second,
         );
+        if (targetTime.isBefore(now)) {
+          targetTime = targetTime.add(const Duration(days: 1));
+        }
+      } else {
+        return;
       }
-      return;
     }
+
+    final tz.TZDateTime tzTime = tz.TZDateTime.from(targetTime, tz.local);
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'pocketlife_reminders',
-      'PocketLife Reminders',
-      channelDescription: 'Notifications for PocketLife alarms and reminders',
+      'finovo_reminders',
+      'Finovo Reminders',
+      channelDescription: 'Notifications for Finovo budget reminders and notes',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -102,13 +107,11 @@ class NotificationService {
         body,
         tzTime,
         platformDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
     } else {
-      // For repeat notifications: Daily, Weekly, Monthly, Yearly
-      // We can map these to the matchDateTimeComponents parameter
       DateTimeComponents? matchComponents;
       if (repeatType == 'Daily') {
         matchComponents = DateTimeComponents.time;
@@ -126,7 +129,7 @@ class NotificationService {
         body,
         tzTime,
         platformDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: matchComponents,

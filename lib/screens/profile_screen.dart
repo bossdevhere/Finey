@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
+import '../services/export_service.dart';
 import 'history_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -11,6 +12,75 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  void _showBudgetDialog(double currentBudget, ColorScheme colorScheme) {
+    final controller = TextEditingController(text: currentBudget.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Set Monthly Budget', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Monthly Budget Limit',
+            hintText: 'e.g. 30000',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              final val = double.tryParse(controller.text.trim());
+              if (val != null && val >= 0) {
+                ref.read(settingsProvider.notifier).updateMonthlyBudget(val);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCurrencyDialog(String currentCurrency, ColorScheme colorScheme) {
+    final currencies = ['₹', '\$', '€', '£', '¥', '₩', 'R\$'];
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Select Currency Symbol', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+        children: currencies.map((c) {
+          return SimpleDialogOption(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            onPressed: () {
+              ref.read(settingsProvider.notifier).updateCurrency(c);
+              Navigator.pop(context);
+            },
+            child: Row(
+              children: [
+                Text(c, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.primary)),
+                const SizedBox(width: 16),
+                Text(c == currentCurrency ? 'Current' : '', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsObj = ref.watch(settingsProvider);
@@ -50,7 +120,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   color: colorScheme.primary,
                 ),
                 value: settingsObj.isDarkMode,
-                activeColor: colorScheme.primary,
+                activeThumbColor: colorScheme.primary,
                 onChanged: (bool val) {
                   ref.read(settingsProvider.notifier).toggleDarkMode();
                 },
@@ -67,24 +137,121 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: colorScheme.outline, width: 1),
               ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                title: Text(
-                  'Transaction History',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
-                ),
-                subtitle: Text(
-                  'View, search, and filter all entries',
-                  style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
-                ),
-                leading: Icon(Icons.history_rounded, color: colorScheme.primary),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HistoryScreen()),
-                  );
-                },
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Monthly Budget',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      '${settingsObj.currency}${settingsObj.monthlyBudget.toStringAsFixed(0)} limit set',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.account_balance_wallet_outlined, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _showBudgetDialog(settingsObj.monthlyBudget, colorScheme),
+                  ),
+                  Divider(height: 1, color: colorScheme.outline),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Currency Symbol',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'Current: ${settingsObj.currency}',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.currency_exchange_rounded, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _showCurrencyDialog(settingsObj.currency, colorScheme),
+                  ),
+                  Divider(height: 1, color: colorScheme.outline),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Transaction History',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'View, search, and filter all entries',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.history_rounded, color: colorScheme.primary),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Backup & Data Export Section
+            _sectionHeader('DATA MANAGEMENT', colorScheme),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outline, width: 1),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Export Data to CSV',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'Save expenses and income as spreadsheet',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.table_chart_outlined, color: colorScheme.primary),
+                    onTap: () async {
+                      final path = await ExportService.exportExpensesToCSV();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Exported to $path'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  Divider(height: 1, color: colorScheme.outline),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Backup Database (JSON)',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorScheme.onSurface),
+                    ),
+                    subtitle: Text(
+                      'Create complete offline backup file',
+                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    ),
+                    leading: Icon(Icons.cloud_upload_outlined, color: colorScheme.primary),
+                    onTap: () async {
+                      final path = await ExportService.exportBackupJSON();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Backup created at $path'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),

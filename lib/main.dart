@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'database/hive_database.dart';
 import 'services/notification_service.dart';
 import 'providers/settings_provider.dart';
-import 'screens/navigation_screen.dart';
 import 'screens/splash_screen.dart';
 
 void main() async {
