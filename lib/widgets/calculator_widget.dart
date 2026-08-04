@@ -167,19 +167,21 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 16,
-        bottom: bottomInset > 0 ? bottomInset + 16 : bottomPadding + 24,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
+    return Material(
+      color: colorScheme.surface,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border.all(color: colorScheme.outline, width: 1),
+        side: BorderSide(color: colorScheme.outline, width: 1),
       ),
-      child: Column(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 16,
+          bottom: bottomInset > 0 ? bottomInset + 16 : bottomPadding + 24,
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Drag handle
@@ -329,6 +331,7 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
           ],
         ],
       ),
-    );
+    ),
+  );
   }
 }

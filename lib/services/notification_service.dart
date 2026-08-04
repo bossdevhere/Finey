@@ -81,9 +81,9 @@ class NotificationService {
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'finovo_reminders',
-      'Finovo Reminders',
-      channelDescription: 'Notifications for Finovo budget reminders and notes',
+      'finey_reminders',
+      'Finey Reminders',
+      channelDescription: 'Notifications for Finey budget reminders and notes',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,

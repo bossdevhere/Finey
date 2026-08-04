@@ -32,7 +32,7 @@ class ExportService {
     String csvContent = const ListToCsvConverter().convert(rows);
 
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/Finovo/Exports');
+    final backupDir = Directory('${directory.path}/Finey/Exports');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
@@ -64,7 +64,7 @@ class ExportService {
     String csvContent = const ListToCsvConverter().convert(rows);
 
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/Finovo/Exports');
+    final backupDir = Directory('${directory.path}/Finey/Exports');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
@@ -127,7 +127,7 @@ class ExportService {
     final jsonContent = jsonEncode(backupData);
 
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/Finovo/Backups');
+    final backupDir = Directory('${directory.path}/Finey/Backups');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
@@ -221,7 +221,7 @@ class ExportService {
   // Get list of local backups
   static Future<List<File>> getLocalBackups() async {
     final directory = await getApplicationDocumentsDirectory();
-    final backupDir = Directory('${directory.path}/Finovo/Backups');
+    final backupDir = Directory('${directory.path}/Finey/Backups');
     if (!await backupDir.exists()) return [];
 
     final list = backupDir.listSync();

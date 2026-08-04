@@ -76,8 +76,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 200,
-                    height: 200,
+                    width: 260,
+                    height: 115,
                     child: Image.asset(
                       'assets/logo.png',
                       fit: BoxFit.contain,

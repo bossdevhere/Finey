@@ -67,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Finovo',
+                        'Finey',
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
@@ -377,11 +377,13 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildRecentTransactions(List<TransactionItem> items, String currency, ColorScheme scheme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surface,
+    return Material(
+      color: scheme.surface,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: scheme.outline, width: 1),
+        side: BorderSide(color: scheme.outline, width: 1),
       ),
       child: ListView.separated(
         shrinkWrap: true,

@@ -164,14 +164,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF10B981), fontSize: 12, letterSpacing: 1.1),
                           ),
                           const SizedBox(height: 6),
-                          ...dayIncomes.map((inc) => Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
+                          ...dayIncomes.map((inc) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Material(
                                   color: colorScheme.surface,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: colorScheme.outline, width: 1),
-                                ),
-                                child: ListTile(
+                                  clipBehavior: Clip.antiAlias,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(color: colorScheme.outline, width: 1),
+                                  ),
+                                  child: ListTile(
                                   leading: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: const BoxDecoration(
@@ -187,7 +190,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                     style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.w800, fontSize: 15),
                                   ),
                                 ),
-                              )),
+                              ))),
                           const SizedBox(height: 12),
                         ],
                         if (dayExpenses.isNotEmpty) ...[
@@ -196,14 +199,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFEF4444), fontSize: 12, letterSpacing: 1.1),
                           ),
                           const SizedBox(height: 6),
-                          ...dayExpenses.map((exp) => Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
+                          ...dayExpenses.map((exp) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Material(
                                   color: colorScheme.surface,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: colorScheme.outline, width: 1),
-                                ),
-                                child: ListTile(
+                                  clipBehavior: Clip.antiAlias,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(color: colorScheme.outline, width: 1),
+                                  ),
+                                  child: ListTile(
                                   leading: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: const BoxDecoration(
@@ -219,7 +225,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                     style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w800, fontSize: 15),
                                   ),
                                 ),
-                              )),
+                              ))),
                         ],
                       ],
                     ),

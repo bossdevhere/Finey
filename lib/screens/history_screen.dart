@@ -193,14 +193,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(item.date);
                         final desc = item.noteOrDescription;
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Material(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: colorScheme.outline, width: 1),
-                          ),
-                          child: ListTile(
+                            clipBehavior: Clip.antiAlias,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: BorderSide(color: colorScheme.outline, width: 1),
+                            ),
+                            child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             leading: Container(
                               padding: const EdgeInsets.all(8),
@@ -266,7 +269,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               );
                             },
                           ),
-                        );
+                        ),
+                      );
                       },
                     ),
             ),

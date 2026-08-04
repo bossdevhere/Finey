@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:finovo/models/expense.dart';
-import 'package:finovo/models/income.dart';
-import 'package:finovo/models/settings.dart';
+import 'package:finey/models/expense.dart';
+import 'package:finey/models/income.dart';
+import 'package:finey/models/settings.dart';
 
 void main() {
-  group('Finovo Data Model & Business Logic Unit Tests', () {
+  group('Finey Data Model & Business Logic Unit Tests', () {
     test('Expense model creation and copyWith test', () {
       final expense = Expense(
         id: '123',

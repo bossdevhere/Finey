@@ -116,11 +116,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Visual Design Section
             _sectionHeader('THEME & DESIGN', colorScheme),
             const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
+            Material(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: colorScheme.outline, width: 1),
+                side: BorderSide(color: colorScheme.outline, width: 1),
               ),
               child: SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -148,11 +150,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Financial Tracker Section
             _sectionHeader('FINANCIAL PREFERENCES', colorScheme),
             const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
+            Material(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: colorScheme.outline, width: 1),
+                side: BorderSide(color: colorScheme.outline, width: 1),
               ),
               child: Column(
                 children: [

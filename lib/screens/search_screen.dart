@@ -80,14 +80,17 @@ class SearchScreen extends ConsumerWidget {
                       if (searchResult.matchingExpenses.isNotEmpty) ...[
                         _buildHeader('EXPENSES', searchResult.matchingExpenses.length, colorScheme),
                         const SizedBox(height: 6),
-                        ...searchResult.matchingExpenses.map((exp) => Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
+                        ...searchResult.matchingExpenses.map((exp) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Material(
                                 color: colorScheme.surface,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: colorScheme.outline, width: 1),
-                              ),
-                              child: ListTile(
+                                clipBehavior: Clip.antiAlias,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(color: colorScheme.outline, width: 1),
+                                ),
+                                child: ListTile(
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: const BoxDecoration(
@@ -101,9 +104,9 @@ class SearchScreen extends ConsumerWidget {
                                 trailing: Text(
                                   '-$currency${exp.amount.toStringAsFixed(0)}',
                                   style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w800, fontSize: 15),
-                                ),
-                              ),
-                            )),
+                               ),
+                             ),
+                           ))),
                         const SizedBox(height: 16),
                       ],
 
@@ -111,14 +114,17 @@ class SearchScreen extends ConsumerWidget {
                       if (searchResult.matchingNotes.isNotEmpty) ...[
                         _buildHeader('NOTES & LISTS', searchResult.matchingNotes.length, colorScheme),
                         const SizedBox(height: 6),
-                        ...searchResult.matchingNotes.map((note) => Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
+                        ...searchResult.matchingNotes.map((note) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Material(
                                 color: colorScheme.surface,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: colorScheme.outline, width: 1),
-                              ),
-                              child: ListTile(
+                                clipBehavior: Clip.antiAlias,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(color: colorScheme.outline, width: 1),
+                                ),
+                                child: ListTile(
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
@@ -138,11 +144,12 @@ class SearchScreen extends ConsumerWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(builder: (context) => NoteDetailScreen(note: note)),
-                                  );
-                                },
-                              ),
-                            )),
-                      ],
+                                   );
+                                 },
+                               ),
+                             ),
+                           )),
+                       ],
                     ],
                   ),
       ),
