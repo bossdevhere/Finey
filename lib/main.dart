@@ -39,7 +39,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Finovo',
+      title: 'Finey',
 
       // Premium Minimal Light Theme
       theme: ThemeData(
