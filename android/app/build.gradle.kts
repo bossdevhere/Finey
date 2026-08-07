@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.finovo.app"
+    namespace = "com.finey.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.finovo.app"
+        applicationId = "com.finey.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

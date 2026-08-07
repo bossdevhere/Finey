@@ -1,4 +1,4 @@
-package com.finovo.app
+package com.finey.app
 
 import io.flutter.embedding.android.FlutterActivity
 
