@@ -118,7 +118,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 8),
             Material(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
               clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -152,7 +151,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 8),
             Material(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
               clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),

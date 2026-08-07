@@ -379,7 +379,6 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildRecentTransactions(List<TransactionItem> items, String currency, ColorScheme scheme) {
     return Material(
       color: scheme.surface,
-      borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),

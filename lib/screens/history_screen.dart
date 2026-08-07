@@ -197,7 +197,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Material(
                             color: colorScheme.surface,
-                            borderRadius: BorderRadius.circular(18),
                             clipBehavior: Clip.antiAlias,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),

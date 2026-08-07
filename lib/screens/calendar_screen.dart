@@ -168,7 +168,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 padding: const EdgeInsets.only(bottom: 8),
                                 child: Material(
                                   color: colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(16),
                                   clipBehavior: Clip.antiAlias,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
@@ -203,7 +202,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 padding: const EdgeInsets.only(bottom: 8),
                                 child: Material(
                                   color: colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(16),
                                   clipBehavior: Clip.antiAlias,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),

@@ -84,7 +84,6 @@ class SearchScreen extends ConsumerWidget {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Material(
                                 color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(16),
                                 clipBehavior: Clip.antiAlias,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -118,7 +117,6 @@ class SearchScreen extends ConsumerWidget {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Material(
                                 color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(16),
                                 clipBehavior: Clip.antiAlias,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
