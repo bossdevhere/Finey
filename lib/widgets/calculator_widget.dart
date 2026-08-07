@@ -42,6 +42,9 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
     try {
       String formattedInput = _input.replaceAll('×', '*').replaceAll('÷', '/');
       double evaluated = _customEval(formattedInput);
+      if (evaluated.isNaN || evaluated.isInfinite) {
+        throw Exception("Invalid result");
+      }
       
       String res = evaluated.toString();
       if (res.endsWith('.0')) {

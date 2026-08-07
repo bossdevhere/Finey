@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:finey/models/expense.dart';
 import 'package:finey/models/income.dart';
+import 'package:finey/models/note.dart';
 import 'package:finey/models/settings.dart';
 
 void main() {
@@ -57,6 +58,29 @@ void main() {
       expect(updatedSettings.currency, equals('\$'));
       expect(updatedSettings.monthlyBudget, equals(50000.00));
       expect(updatedSettings.isDarkMode, isTrue);
+    });
+
+    test('Note model creation, copyWith, and checklist validation', () {
+      final note = Note(
+        id: 'note-99',
+        title: 'Project Tasks',
+        content: 'Checklist for launch',
+        color: 0xFF10B981,
+        isPinned: true,
+        isFavorite: false,
+        lastModified: DateTime(2026, 8, 7),
+        checklist: ['Generate keystore', 'Upload to Play Console'],
+        checklistChecked: [true, false],
+      );
+
+      expect(note.id, equals('note-99'));
+      expect(note.isPinned, isTrue);
+      expect(note.checklist.length, equals(2));
+      expect(note.checklistChecked.first, isTrue);
+
+      final updatedNote = note.copyWith(isFavorite: true, isPinned: false);
+      expect(updatedNote.isFavorite, isTrue);
+      expect(updatedNote.isPinned, isFalse);
     });
   });
 }
